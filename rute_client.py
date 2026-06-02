@@ -15,11 +15,11 @@ client_bp = Blueprint('client', __name__)
 # ==========================================
 def kirim_email_magic_link(email_tujuan, nama_klien, token):
     # MASUKIN API KEY BREVO LU DI SINI
-    BREVO_API_KEY = "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"
+    BREVO_API_KEY = "x"
 
     # Pengaturan pengirim (Bisa pakai email apa aja asalkan lu punya akses, atau email default Brevo)
-    SENDER_EMAIL = "aqilnusa@gmail.com" # Ganti dengan email Skripsikuu (nggak harus email valid kalau buat testing awal di Brevo, tapi idealnya email yg terverifikasi di Brevo)
-    SENDER_NAME = "Admin Skripsikuu"
+    SENDER_EMAIL = "a" # Ganti dengan email Skripsikuu (nggak harus email valid kalau buat testing awal di Brevo, tapi idealnya email yg terverifikasi di Brevo)
+    SENDER_NAME = "A"
 
     link_login = f"https://skripsikuu.pythonanywhere.com/client/verify?token={token}"
 
