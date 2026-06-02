@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+
+{% block title %}Sistem Control Panel - Skripsikuu{% endblock %}
+
+{% block extra_css %}
+{% endblock %}
+
+{% block content %}
+<div class="mb-4 mt-2">
+    <h4 class="fw-bolder mb-1"><i class="bi bi-gear-complex-fill text-primary me-2"></i>System Settings</h4>
+    <p class="text-muted small mb-0">Pusat kendali database, utilitas keuangan, dan pengawasan sistem (Khusus Superadmin).</p>
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="alert alert-{{ category }} alert-dismissible fade show shadow-sm border-0 mb-4" role="alert">
+                <i class="bi bi-check-circle-fill me-2"></i>{{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+
+<div class="god-mode-bg mb-4 shadow-sm">
+    <div class="d-flex align-items-center mb-3 border-bottom border-secondary border-opacity-50 pb-2">
+        <span class="status-dot me-3"></span>
+        <h5 class="mb-0 fw-bold text-white letter-spacing-1">SERVER TELEMETRY</h5>
+    </div>
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <p class="mb-1 text-white-50 small">Sistem Operasi Mesin</p>
+            <h6 class="text-white">> {{ server.os }}</h6>
+        </div>
+        <div class="col-md-6 mb-3">
+            <p class="mb-1 text-white-50 small">Versi Engine (Python)</p>
+            <h6 class="text-white">> Python {{ server.python_version }}</h6>
+        </div>
+    </div>
+    <div class="mt-2">
+        <div class="d-flex justify-content-between text-white-50 small mb-1">
+            <span>Penyimpanan Disk (Server Utama)</span>
+            <span>{{ server.disk_used }} GB / {{ server.disk_total }} GB ({{ server.disk_percent }}%)</span>
+        </div>
+        <div class="progress" style="height: 6px; background-color: rgba(255,255,255,0.1);">
+            <div class="progress-bar {% if server.disk_percent > 80 %}bg-danger{% else %}bg-info{% endif %}"
+                 role="progressbar" style="width: {{ server.disk_percent }}%"></div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-5">
+
+    <div class="col-md-6 col-xl-4">
+        <div class="card h-100 shadow-sm border-0 table-rounded">
+            <div class="card-body d-flex flex-column justify-content-between p-4">
+                <div>
+                    <div class="mb-3"><i class="bi bi-arrow-repeat text-primary fs-2"></i></div>
+                    <h5 class="fw-bold mb-2">Sinkronisasi Kas</h5>
+                    <p class="text-muted small mb-4">Menghitung ulang pembukuan tim dan profit admin dari seluruh tugas berstatus murni <b>Done</b>.</p>
+                </div>
+                <a href="/sinkron_keuangan" class="btn btn-outline-primary w-100 shadow-sm fw-bold"><i class="bi bi-arrow-repeat me-1"></i> Mulai Sinkron</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-xl-4">
+        <div class="card h-100 shadow-sm border-0 table-rounded">
+            <div class="card-body d-flex flex-column justify-content-between p-4">
+                <div>
+                    <div class="mb-3"><i class="bi bi-database-fill-gear text-info fs-2"></i></div>
+                    <h5 class="fw-bold mb-2">Intip Database</h5>
+                    <p class="text-muted small mb-4">Melihat isi tabel mentah SQLite secara langsung dari web tanpa perlu buka aplikasi pihak ketiga.</p>
+                </div>
+                <a href="/secret28" class="btn btn-outline-info w-100 shadow-sm fw-bold"><i class="bi bi-eye-fill me-1"></i> Buka Database</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-xl-4">
+        <div class="card h-100 shadow-sm border-0 table-rounded">
+            <div class="card-body d-flex flex-column justify-content-between p-4">
+                <div>
+                    <div class="mb-3"><i class="bi bi-terminal-split text-secondary fs-2"></i></div>
+                    <h5 class="fw-bold mb-2">Log Aktivitas</h5>
+                    <p class="text-muted small mb-4">Memantau rekam jejak digital tindakan admin, reviewer, dan member di sistem (CCTV Website).</p>
+                </div>
+                <a href="/activity_log" class="btn btn-outline-secondary w-100 shadow-sm fw-bold"><i class="bi bi-shield-shaded me-1"></i> Lihat Log</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-xl-4">
+        <div class="card h-100 shadow-sm border-0 table-rounded">
+            <div class="card-body d-flex flex-column justify-content-between p-4">
+                <div>
+                    <div class="mb-3"><i class="bi bi-briefcase-fill text-dark fs-2"></i></div>
+                    <h5 class="fw-bold mb-2">Migrasi CRM</h5>
+                    <p class="text-muted small mb-4">Suntik tabel database baru untuk sistem klien (Clients, Magic Links, & Orders).</p>
+                </div>
+                <a href="/install_crm" onclick="return confirm('Eksekusi pembuatan tabel CRM baru?');" class="btn btn-outline-dark w-100 shadow-sm fw-bold"><i class="bi bi-download me-1"></i> Install Tabel</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-xl-4">
+        <div class="card h-100 shadow-sm border-0 table-rounded">
+            <div class="card-body d-flex flex-column justify-content-between p-4">
+                <div>
+                    <div class="mb-3"><i class="bi bi-chat-dots-fill text-success fs-2"></i></div>
+                    <h5 class="fw-bold mb-2">Migrasi Diskusi</h5>
+                    <p class="text-muted small mb-4">Suntik tabel database baru untuk sistem komunikasi antar member di dalam tugas.</p>
+                </div>
+                <a href="/install_diskusi" onclick="return confirm('Eksekusi pembuatan tabel Diskusi baru?');" class="btn btn-outline-success w-100 shadow-sm fw-bold"><i class="bi bi-download me-1"></i> Install Tabel</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-xl-4">
+        <div class="card h-100 shadow-sm border-0 table-rounded border-start border-danger border-3">
+            <div class="card-body d-flex flex-column justify-content-between p-4">
+                <div>
+                    <div class="mb-3"><i class="bi bi-exclamation-triangle-fill text-danger fs-2"></i></div>
+                    <h5 class="fw-bold mb-2 text-danger">Reset Keuangan</h5>
+                    <p class="text-muted small mb-4">Mengosongkan seluruh riwayat kas masuk & keluar secara permanen. <b>Gunakan dengan bijak!</b></p>
+                </div>
+                <form action="/reset_keuangan" method="POST" onsubmit="return confirm('⚠️ PERINGATAN: Lu yakin mau menghapus SEMUA data keuangan kas? Tindakan ini tidak bisa dibatalkan bos!');">
+                    <button type="submit" class="btn btn-danger w-100 shadow-sm fw-bold"><i class="bi bi-trash3-fill me-1"></i> Reset Total</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-xl-4">
+        <div class="card h-100 shadow-sm border-0 table-rounded border-start border-primary border-3">
+            <div class="card-body d-flex flex-column justify-content-between p-4">
+                <div>
+                    <div class="mb-3"><i class="bi bi-hdd-network-fill text-primary fs-2"></i></div>
+                    <h5 class="fw-bold mb-2">Backup & Restore DB</h5>
+                    <p class="text-muted small mb-4">Download file <code>.db</code> untuk cadangan, atau timpa database lama jika terjadi error parah.</p>
+                </div>
+
+                <div class="d-grid gap-2">
+                    <a href="/backup_db" class="btn btn-outline-primary btn-sm fw-bold"><i class="bi bi-cloud-arrow-down-fill me-1"></i> Download Backup</a>
+
+                    <form action="/restore_db" method="POST" enctype="multipart/form-data" class="mt-1">
+                        <div class="input-group input-group-sm">
+                            <input type="file" class="form-control" name="db_file" accept=".db" required>
+                            <button class="btn btn-danger fw-bold" type="submit" onclick="return confirm('BAHAYA: Database saat ini akan ditimpa! Yakin?');">Restore</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-xl-4">
+        <div class="card h-100 shadow-sm border-0 table-rounded bg-dark text-white">
+            <div class="card-body d-flex flex-column justify-content-between p-4" style="background-image: radial-gradient(circle at top right, #1a233a 0%, #0b0f19 100%); border-radius: 12px;">
+                <div>
+                    <div class="mb-3"><i class="bi bi-terminal-fill text-success fs-2 text-shadow-sm"></i></div>
+                    <h5 class="fw-bold mb-2 text-white">Live Error Log</h5>
+                    <p class="text-white-50 small mb-4">Buka konsol terminal untuk melihat <i>stack trace</i> dan error mesin Python secara real-time.</p>
+                </div>
+                <a href="/error_log" class="btn btn-success w-100 shadow-sm fw-bold border-0" style="background-color: #20c997; color: #000;"><i class="bi bi-code-square me-1"></i> Buka Terminal</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-xl-4">
+        <div class="card h-100 shadow-sm border-0 table-rounded border-start border-warning border-3">
+            <div class="card-body d-flex flex-column justify-content-between p-4">
+                <div>
+                    <div class="mb-3"><i class="bi bi-magic text-warning fs-2"></i></div>
+                    <h5 class="fw-bold mb-2 text-warning">Garbage Sweeper</h5>
+                    <p class="text-muted small mb-4">Sapu bersih file sampah, foto mantan member, dan <i>cache</i> agar memori server tetap lega.</p>
+                </div>
+                <a href="/sweep_garbage" class="btn btn-warning w-100 shadow-sm fw-bold text-dark" onclick="return confirm('Mulai pembersihan file sampah di server?');"><i class="bi bi-stars me-1"></i> Eksekusi Sweeper</a>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

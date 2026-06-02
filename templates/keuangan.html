@@ -1,0 +1,315 @@
+{% extends "base.html" %}
+
+{% block title %}Finance - Skripsikuu{% endblock %}
+
+{% block extra_css %}
+
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+
+    <div class="d-flex justify-content-between align-items-center mb-4 mt-2" data-aos="fade-down">
+        <div>
+            <h4 class="fw-bolder text-dark mb-1"><i class="bi bi-wallet2 text-primary me-2"></i>Financial Overview</h4>
+            <p class="text-muted small mb-0">Track and manage the team's cash flow seamlessly.</p>
+        </div>
+        <div class="d-none d-md-block">
+            <div class="badge bg-white text-dark border border-secondary border-opacity-25 px-4 py-2 rounded-pill shadow-sm fw-bold">
+                <i class="bi bi-calendar-check-fill text-primary me-2"></i> {{ hari_ini | default('Hari Ini') }}
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-md-4" data-aos="fade-up" data-aos-delay="100">
+            <div class="fin-card-gradient fin-pemasukan">
+                <div class="fin-card-badge"><i class="bi bi-graph-up-arrow me-2"></i> Total Income</div>
+                <h2 class="fw-bolder mb-1" style="font-size: 2.2rem;">Rp {{ "{:,.0f}".format(total_pemasukan).replace(',', '.') }}</h2>
+                <small class="opacity-75 fw-medium">All incoming client payments</small>
+            </div>
+        </div>
+        <div class="col-md-4" data-aos="fade-up" data-aos-delay="200">
+            <div class="fin-card-gradient fin-pengeluaran">
+                <div class="fin-card-badge"><i class="bi bi-graph-down-arrow me-2"></i> Total Expenses</div>
+                <h2 class="fw-bolder mb-1" style="font-size: 2.2rem;">Rp {{ "{:,.0f}".format(total_pengeluaran).replace(',', '.') }}</h2>
+                <small class="opacity-75 fw-medium">Team fees and system operations</small>
+            </div>
+        </div>
+        <div class="col-md-4" data-aos="fade-up" data-aos-delay="300">
+            <div class="fin-card-gradient fin-saldo">
+                <div class="fin-card-badge"><i class="bi bi-safe2-fill me-2"></i> Net Balance</div>
+                <h2 class="fw-bolder mb-1" style="font-size: 2.2rem;">Rp {{ "{:,.0f}".format(saldo_bersih).replace(',', '.') }}</h2>
+                <small class="opacity-75 fw-medium">Current retained profit</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-xl-8 col-lg-7" data-aos="fade-right" data-aos-delay="400">
+            <div class="fin-container">
+                <div class="d-flex justify-content-between align-items-center mb-4 border-bottom border-secondary border-opacity-10 pb-3">
+                    <h6 class="fw-bolder text-dark mb-0"><i class="bi bi-bar-chart-fill text-primary me-2"></i>Cash Flow Analytics</h6>
+                    <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 rounded-pill px-3 py-1">All Time</span>
+                </div>
+                <div style="height: 280px; width: 100%;">
+                    <canvas id="barChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-4 col-lg-5" data-aos="fade-left" data-aos-delay="500">
+            <div class="fin-container">
+                <div class="d-flex justify-content-between align-items-center mb-2 border-bottom border-secondary border-opacity-10 pb-3">
+                    <h6 class="fw-bolder text-dark mb-0"><i class="bi bi-pie-chart-fill text-primary me-2"></i>Income Ratio</h6>
+                </div>
+                <div class="d-flex justify-content-center align-items-center mt-3" style="height: 260px;">
+                    {% if total_pemasukan == 0 and total_pengeluaran == 0 %}
+                        <div class="text-center text-muted opacity-50">
+                            <i class="bi bi-slash-circle fs-1 mb-2 d-block"></i>
+                            <small class="fw-bold">No Data Available</small>
+                        </div>
+                    {% else %}
+                        <div style="position: relative; height: 100%; width: 100%;">
+                            <canvas id="doughnutChart"></canvas>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-5">
+        <div class="col-xl-7 col-lg-7" data-aos="fade-up" data-aos-delay="600">
+            <div class="fin-container">
+                <div class="d-flex justify-content-between align-items-center mb-4 border-bottom border-secondary border-opacity-10 pb-3">
+                    <h6 class="fw-bolder text-dark mb-0"><i class="bi bi-clock-history text-primary me-2"></i>Transaction History</h6>
+                </div>
+
+                <div class="fin-list-wrapper mt-2">
+                    {% for tr in transaksi %}
+                    <div class="fin-list-item transaksi-row">
+                        <div class="d-flex align-items-center gap-3">
+                            {% if tr['tipe'] == 'Pemasukan' %}
+                                <div class="icon-trx bg-success bg-opacity-10 text-success"><i class="bi bi-arrow-down-left"></i></div>
+                            {% else %}
+                                <div class="icon-trx bg-danger bg-opacity-10 text-danger"><i class="bi bi-arrow-up-right"></i></div>
+                            {% endif %}
+
+                            <div>
+                                <div class="fw-bolder text-dark text-truncate" style="max-width: 250px; font-size: 0.95rem;">{{ tr['keterangan'] }}</div>
+                                <div class="text-muted fw-medium" style="font-size: 0.75rem;">
+                                    {{ tr['tanggal'][:10] }} <span class="mx-2 opacity-50">|</span> 
+                                    <span class="{{ 'text-success' if tr['tipe'] == 'Pemasukan' else 'text-danger' }}">{{ tr['tipe'] }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <div class="fw-bolder {{ 'text-success' if tr['tipe'] == 'Pemasukan' else 'text-danger' }}" style="font-size: 1.1rem;">
+                                {% if tr['tipe'] == 'Pemasukan' %}+{% else %}-{% endif %} Rp {{ "{:,.0f}".format(tr['nominal']).replace(',', '.') }}
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5 text-muted opacity-50">
+                        <i class="bi bi-inbox fs-1 mb-2 d-block"></i>
+                        <small class="fw-bold">Belum ada transaksi tercatat</small>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div class="text-center mt-4 d-none" id="wadahBtnTransaksi">
+                    <button class="btn btn-outline-primary btn-sm fw-bold px-5 rounded-pill shadow-sm" onclick="tampilkanSemuaTransaksi()">
+                        <i class="bi bi-chevron-down me-2"></i>Tampilkan Lebih Banyak
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-5 col-lg-5" data-aos="fade-up" data-aos-delay="700">
+            <div class="fin-container mb-4">
+                <h6 class="fw-bolder text-dark mb-3 border-bottom border-secondary border-opacity-10 pb-3">
+                    <i class="bi bi-lightning-charge-fill text-warning me-2"></i>Quick Action
+                </h6>
+                <form method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                    <div class="row g-3 mb-3 mt-1">
+                        <div class="col-6">
+                            <label class="form-label small fw-bold text-muted mb-1">Tipe Transaksi</label>
+                            <select name="tipe" class="form-select fin-input" required>
+                                <option value="" disabled selected>Pilih...</option>
+                                <option value="Pemasukan">Pemasukan 📈</option>
+                                <option value="Pengeluaran">Pengeluaran 📉</option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-bold text-muted mb-1">Nominal (Rp)</label>
+                            <input type="number" name="nominal" class="form-control fin-input" placeholder="0" required>
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold text-muted mb-1">Keterangan</label>
+                        <input type="text" name="keterangan" class="form-control fin-input" placeholder="Catatan transaksi..." required>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 fw-bold shadow-sm rounded-pill py-2" style="font-size: 1.05rem;">
+                        <i class="bi bi-save2-fill me-2"></i>Catat Transaksi
+                    </button>
+                </form>
+            </div>
+
+            <div class="fin-container">
+                <div class="d-flex justify-content-between align-items-center mb-4 border-bottom border-secondary border-opacity-10 pb-3">
+                    <h6 class="fw-bolder text-dark mb-0"><i class="bi bi-bullseye text-danger me-2"></i>Financial Goals</h6>
+                    <button class="btn btn-sm btn-primary bg-opacity-10 border-0 rounded-pill text-primary fw-bold px-3"><i class="bi bi-plus-lg me-1"></i> Add</button>
+                </div>
+
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between align-items-end mb-2">
+                        <span class="text-dark fw-bold"><i class="bi bi-hdd-network text-primary me-2"></i>Server Cloud 1 Tahun</span>
+                        <span class="badge bg-primary rounded-pill">65%</span>
+                    </div>
+                    <div class="progress-fin"><div class="progress-bar bg-primary" style="width: 65%;"></div></div>
+                    <div class="text-muted mt-2 text-end fw-medium" style="font-size: 0.75rem;">Target: Rp 2.000.000</div>
+                </div>
+
+                <div>
+                    <div class="d-flex justify-content-between align-items-end mb-2">
+                        <span class="text-dark fw-bold"><i class="bi bi-cup-hot text-warning me-2"></i>Kas Tim & Gathering</span>
+                        <span class="badge bg-warning text-dark rounded-pill">40%</span>
+                    </div>
+                    <div class="progress-fin"><div class="progress-bar bg-warning" style="width: 40%;"></div></div>
+                    <div class="text-muted mt-2 text-end fw-medium" style="font-size: 0.75rem;">Target: Rp 1.000.000</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    Chart.defaults.font.family = "'Plus Jakarta Sans', sans-serif";
+    Chart.defaults.color = '#94a3b8'; /* Text color lebih lembut */
+    Chart.defaults.font.weight = '600';
+
+    const totalPemasukan = {{ total_pemasukan|tojson }};
+    const totalPengeluaran = {{ total_pengeluaran|tojson }};
+    const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+    const gridColor = currentTheme === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)';
+    const textColor = currentTheme === 'dark' ? '#f8fafc' : '#1e293b';
+
+    {% if total_pemasukan > 0 or total_pengeluaran > 0 %}
+    // 1. DOUGHNUT CHART (INCOME RATIO)
+    const ctxDoughnut = document.getElementById('doughnutChart').getContext('2d');
+
+    // Plugin Teks Tengah Doughnut
+    const centerTextPlugin = {
+        id: 'centerText',
+        beforeDraw: function(chart) {
+            const width = chart.width, height = chart.height, ctx = chart.ctx;
+            ctx.restore();
+            const total = totalPemasukan + totalPengeluaran;
+            const persenPemasukan = Math.round((totalPemasukan / total) * 100) + "%";
+
+            const fontSize = (height / 110).toFixed(2);
+            ctx.font = "800 " + fontSize + "em 'Plus Jakarta Sans'";
+            ctx.textBaseline = "middle";
+            ctx.fillStyle = textColor;
+            const textX = Math.round((width - ctx.measureText(persenPemasukan).width) / 2);
+            const textY = height / 2.1;
+            ctx.fillText(persenPemasukan, textX, textY);
+
+            ctx.font = "700 " + (fontSize * 0.35).toFixed(2) + "em 'Plus Jakarta Sans'";
+            ctx.fillStyle = "#94a3b8";
+            const subText = "Income Rate";
+            const subTextX = Math.round((width - ctx.measureText(subText).width) / 2);
+            ctx.fillText(subText, subTextX, height / 2.1 + 28);
+            ctx.save();
+        }
+    };
+
+    new Chart(ctxDoughnut, {
+        type: 'doughnut',
+        plugins: [centerTextPlugin],
+        data: {
+            labels: ['Pemasukan', 'Pengeluaran'],
+            datasets: [{
+                data: [totalPemasukan, totalPengeluaran],
+                backgroundColor: ['#10b981', '#f43f5e'],
+                borderWidth: 0,
+                borderRadius: 20,
+                spacing: 5,
+                hoverOffset: 10
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom', labels: { usePointStyle: true, padding: 20, font: { size: 12, weight: 'bold' } } },
+                tooltip: { backgroundColor: '#1e293b', padding: 14, cornerRadius: 12, titleFont: {size: 14}, bodyFont: {size: 13} }
+            },
+            cutout: '80%', layout: { padding: { bottom: 10 } }
+        }
+    });
+
+    // 2. BAR CHART (ANALYTICS OVERVIEW)
+    const ctxBar = document.getElementById('barChart').getContext('2d');
+    new Chart(ctxBar, {
+        type: 'bar',
+        data: {
+            labels: ['Total Masuk', 'Total Keluar'],
+            datasets: [{
+                label: 'Nominal (Rp)',
+                data: [totalPemasukan, totalPengeluaran],
+                backgroundColor: ['rgba(16, 185, 129, 0.9)', 'rgba(244, 63, 94, 0.9)'],
+                borderRadius: 12,
+                barPercentage: 0.5
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: false }, tooltip: { backgroundColor: '#1e293b', padding: 14, cornerRadius: 12 } },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    border: { display: false },
+                    grid: { color: gridColor, borderDash: [5, 5] },
+                    ticks: { 
+                        display: true, 
+                        color: '#94a3b8',
+                        callback: function(value) { return 'Rp ' + (value/1000) + 'k'; } // Disingkat pakai K
+                    }
+                },
+                x: {
+                    border: { display: false },
+                    grid: { display: false },
+                    ticks: { color: textColor, font: { weight: 'bold' } }
+                }
+            }
+        }
+    });
+    {% endif %}
+
+    // PAGINATION RIWAYAT
+    document.addEventListener("DOMContentLoaded", function() {
+        const BATAS_TAMPIL = 6;
+        const barisTransaksi = document.querySelectorAll('.transaksi-row');
+        const wadahBtn = document.getElementById('wadahBtnTransaksi');
+        if (barisTransaksi.length > BATAS_TAMPIL) {
+            wadahBtn.classList.remove('d-none');
+            barisTransaksi.forEach((baris, index) => {
+                if (index >= BATAS_TAMPIL) { baris.style.display = 'none'; baris.classList.add('disembunyikan'); }
+            });
+        }
+    });
+
+    function tampilkanSemuaTransaksi() {
+        document.querySelectorAll('.transaksi-row.disembunyikan').forEach(baris => {
+            baris.style.display = 'flex';
+            baris.classList.remove('disembunyikan');
+        });
+        document.getElementById('wadahBtnTransaksi').classList.add('d-none');
+    }
+</script>
+{% endblock %}

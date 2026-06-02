@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}Laporan & Slip Gaji - Skripsikuu{% endblock %}
+
+{% block extra_css %}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+    <div class="mb-4 mt-2" data-aos="fade-down">
+        <h4 class="fw-bolder mb-1 text-dark"><i class="bi bi-file-earmark-bar-graph-fill text-primary me-2"></i>Pusat Laporan</h4>
+        <p class="text-muted small mb-0">Cetak laporan keuangan, performa, dan slip gaji member dengan format rapi.</p>
+    </div>
+
+    <div class="row g-4 mb-5">
+        
+        <div class="col-md-6 col-xl-3" data-aos="fade-up" data-aos-delay="100">
+            <div class="report-card h-100 p-4 d-flex flex-column text-center">
+                <div class="mt-2">
+                    <div class="icon-box-lg bg-success bg-opacity-10 text-success">
+                        <i class="bi bi-file-earmark-excel-fill"></i>
+                    </div>
+                    <h5 class="fw-bold text-dark">Laporan Excel</h5>
+                    <p class="text-muted small px-2">Unduh seluruh riwayat mutasi kas dalam format .CSV / Excel mentah untuk audit.</p>
+                </div>
+                <div class="mt-auto pt-4">
+                    <a href="/export_keuangan" class="btn btn-success w-100 rounded-pill fw-bold py-2 shadow-sm">
+                        <i class="bi bi-download me-2"></i> Unduh Excel
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-xl-3" data-aos="fade-up" data-aos-delay="200">
+            <div class="report-card h-100 p-4 d-flex flex-column text-center">
+                <div class="mt-2">
+                    <div class="icon-box-lg bg-danger bg-opacity-10 text-danger">
+                        <i class="bi bi-file-earmark-pdf-fill"></i>
+                    </div>
+                    <h5 class="fw-bold text-dark">Laporan PDF</h5>
+                    <p class="text-muted small px-2">Cetak dokumen cantik lengkap dengan Bar Chart dan ringkasan mutasi bulanan.</p>
+                </div>
+                <div class="mt-auto pt-4">
+                    <a href="/laporan_pdf" class="btn btn-danger w-100 rounded-pill fw-bold py-2 shadow-sm">
+                        <i class="bi bi-printer me-2"></i> Buat PDF
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-xl-3" data-aos="fade-up" data-aos-delay="300">
+            <div class="report-card h-100 p-4 d-flex flex-column text-center border-start border-primary border-4">
+                <div class="mt-2">
+                    <div class="icon-box-lg bg-primary bg-opacity-10 text-primary">
+                        <i class="bi bi-receipt-cutoff"></i>
+                    </div>
+                    <h5 class="fw-bold text-dark">Slip Gaji Tim</h5>
+                    <p class="text-muted small px-2">Pilih pekerja untuk menghitung total pendapatan dan mencetak slip gaji resmi.</p>
+                </div>
+                
+                <div class="mt-auto pt-3">
+                    <form action="/slip_gaji" method="GET">
+                        <select name="member_id" class="form-select report-select w-100 mb-3" required>
+                            <option value="" selected disabled>-- Pilih Member --</option>
+                            {% for m in members %}
+                            <option value="{{ m['id'] }}">{{ m['nama_lengkap'] }} ({{ m['username'] }})</option>
+                            {% endfor %}
+                        </select>
+                        <button type="submit" class="btn btn-primary w-100 rounded-pill fw-bold py-2 shadow-sm">
+                            <i class="bi bi-search me-2"></i> Cek Slip Gaji
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-xl-3" data-aos="fade-up" data-aos-delay="400">
+            <div class="report-card h-100 p-4 d-flex flex-column text-center">
+                <div class="mt-2">
+                    <div class="icon-box-lg bg-warning bg-opacity-10 text-warning">
+                        <i class="bi bi-bar-chart-steps"></i>
+                    </div>
+                    <h5 class="fw-bold text-dark">Performa Kinerja</h5>
+                    <p class="text-muted small px-2">Lihat analitik beban kerja, jumlah tugas selesai, dan tingkat kecepatan member.</p>
+                </div>
+                <div class="mt-auto pt-4">
+                    <a href="/laporan_performa" class="btn btn-warning text-dark w-100 rounded-pill fw-bold py-2 shadow-sm">
+                        <i class="bi bi-eye-fill me-2"></i> Lihat Analitik
+                    </a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

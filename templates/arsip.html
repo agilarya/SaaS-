@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+
+{% block title %}Task Archive - Skripsikuu{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 mt-2 gap-3">
+        <div>
+            <h3 class="fw-bolder mb-1 text-dark"><i class="bi bi-archive-fill text-primary me-2"></i>Project Archives</h3>
+            <p class="text-muted small mb-0">Project repositories that are 100% complete, approved, and closed.</p>
+        </div>
+
+        <div class="d-flex align-items-center gap-2 flex-wrap flex-md-nowrap">
+            <button id="btnViewAll" class="btn btn-outline-primary rounded-pill shadow-sm fw-bold d-none text-nowrap px-4 transition-all" onclick="tampilkanSemua()">
+                <i class="bi bi-list-nested me-1"></i> Show All
+            </button>
+
+            <div class="input-group search-pill-group shadow-sm" style="min-width: 250px; max-width: 320px;">
+                <span class="input-group-text px-3"><i class="bi bi-search text-muted"></i></span>
+                <input type="text" id="searchInput" class="form-control px-2" placeholder="Search by title or ID" onkeyup="cariTugas()" style="font-size: 0.9rem;">
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0 rounded-4 overflow-hidden mb-5" data-aos="fade-up" data-aos-delay="150">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0 align-middle" style="min-width: 800px;">
+                    <thead class="thead-spectra">
+                        <tr>
+                            <th class="py-3 px-4 text-start">Completed Project Details</th>
+                            <th class="py-3 px-4 text-center" style="width: 160px;">Completion Date</th>
+                            <th class="py-3 px-4 text-center" style="width: 180px;">Worker</th>
+                            <th class="py-3 px-4 text-center" style="width: 140px;">Status</th>
+                            <th class="py-3 px-4 text-center" style="width: 120px;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for t in tugas %}
+                        <tr class="table-custom-row arsip-row">
+
+                            <td class="px-4 py-3">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="bg-success bg-opacity-10 rounded-3 d-flex align-items-center justify-content-center text-success border border-success border-opacity-25" style="width: 45px; height: 45px; flex-shrink: 0;">
+                                        <i class="bi bi-check2-all fs-4"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-1 fw-bold text-dark" style="font-size: 1rem; line-height: 1.3;">{{ t['judul_tugas'] }}</h6>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 px-2 py-1" style="font-size: 0.65rem;">ID: #{{ t['id'] }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+
+                            <td class="px-4 py-3 text-center">
+                                <span class="badge bg-light text-muted border border-secondary border-opacity-25 px-3 py-2 rounded-pill w-100 shadow-sm"><i class="bi bi-calendar-check me-1"></i> {{ t['deadline'] }}</span>
+                            </td>
+
+                            <td class="px-4 py-3 text-center">
+                                <span class="badge border border-secondary border-opacity-25 text-secondary fw-semibold bg-transparent px-3 py-2 rounded-pill w-100 text-truncate shadow-sm" style="max-width: 160px;">
+                                    <i class="bi bi-person-fill me-1"></i> {{ t['nama_member'] or '-' }}
+                                </span>
+                            </td>
+
+                            <td class="px-4 py-3 text-center">
+                                <span class="badge py-2 px-3 fw-bold border rounded-pill w-100 bg-success bg-opacity-10 text-success border-success border-opacity-25 shadow-sm">
+                                    <i class="bi bi-patch-check-fill me-1"></i> {{ t['status'] }}
+                                </span>
+                            </td>
+
+                            <td class="px-4 py-3 text-center">
+                                <div class="action-buttons">
+                                    <a href="/tugas/{{ t['id'] }}" class="btn btn-light border border-secondary border-opacity-25 text-primary shadow-sm btn-icon-round" title="Lihat Detail Histori"><i class="bi bi-eye-fill"></i></a>
+
+                                    {% if session['role'] == 'superadmin' %}
+                                    <a href="/edit_tugas/{{ t['id'] }}" class="btn btn-light border border-secondary border-opacity-25 text-warning shadow-sm btn-icon-round" title="Revisi Harga/Data Spesial"><i class="bi bi-pencil-square"></i></a>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="5" class="py-5 text-center bg-transparent">
+                                <div class="py-4" data-aos="zoom-in" data-aos-duration="800">
+                                    <lottie-player
+                                        src="https://lottie.host/19329bc0-0c46-4e02-afbc-cb535359a1ce/D5w84vFfN0.json"
+                                        background="transparent"
+                                        speed="1"
+                                        style="width: 220px; height: 220px; margin: -10px auto;"
+                                        loop
+                                        autoplay>
+                                    </lottie-player>
+
+                                    <h5 class="text-dark fw-bolder mt-1">The Archive Room Is Still Empty</h5>
+                                    <p class="text-muted small mb-0">No tasks have been 100% completed by the team yet.</p>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const BATAS_TAMPIL = 5;
+    let modeSemua = false;
+
+    document.addEventListener("DOMContentLoaded", function() {
+        aturTampilanAwal();
+    });
+
+    function aturTampilanAwal() {
+        const rows = document.querySelectorAll('.arsip-row');
+        const btnViewAll = document.getElementById('btnViewAll');
+
+        if(rows.length > BATAS_TAMPIL) {
+            btnViewAll.classList.remove('d-none');
+            rows.forEach((row, index) => {
+                if(index >= BATAS_TAMPIL) row.style.display = 'none';
+            });
+        }
+    }
+
+    function tampilkanSemua() {
+        const rows = document.querySelectorAll('.arsip-row');
+        rows.forEach(row => row.style.display = '');
+
+        document.getElementById('btnViewAll').classList.add('d-none');
+        modeSemua = true;
+    }
+
+    function cariTugas() {
+        const input = document.getElementById("searchInput").value.toLowerCase();
+        const rows = document.querySelectorAll('.arsip-row');
+        const btnViewAll = document.getElementById('btnViewAll');
+
+        let urutanTampil = 0;
+
+        rows.forEach(row => {
+            const teksBaris = row.textContent.toLowerCase();
+
+            if (input === "") {
+                if (!modeSemua) {
+                    if (urutanTampil < BATAS_TAMPIL) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                    if(rows.length > BATAS_TAMPIL) btnViewAll.classList.remove('d-none');
+                } else {
+                    row.style.display = '';
+                }
+                urutanTampil++;
+            }
+            else {
+                btnViewAll.classList.add('d-none');
+                if (teksBaris.includes(input)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            }
+        });
+    }
+</script>
+{% endblock %}

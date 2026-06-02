@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Masuk - Skripsikuu Portal</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/client_style.css') }}">
+</head>
+<body>
+
+    <div class="glass-card">
+        <div class="text-center mb-4">
+            <div class="brand-icon">
+                <i class="bi bi-rocket-takeoff-fill"></i>
+            </div>
+            <h3 class="fw-bolder text-dark mb-1">Masuk Portal</h3>
+            <p class="text-muted small">Akses pesanan dan pantau progres Anda</p>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show rounded-4 text-center small py-2" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" style="padding: 10px;" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form method="POST" action="{{ url_for('client.login_client') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            
+            <div class="mb-4">
+                <label class="form-label small fw-bold text-secondary ms-1">Alamat Email Terdaftar</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0" style="border-radius: 12px 0 0 12px;">
+                        <i class="bi bi-envelope text-muted"></i>
+                    </span>
+                    <input type="email" name="email" class="form-control border-start-0" placeholder="contoh@email.com" required style="border-radius: 0 12px 12px 0;">
+                </div>
+                <div class="form-text mt-2" style="font-size: 0.75rem;">
+                    <i class="bi bi-shield-check text-success me-1"></i>Akses menggunakan Magic Link (Tanpa Password)
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-magic w-100 fw-bold rounded-pill py-2 mb-3">
+                <i class="bi bi-magic me-1"></i> Kirim Akses Masuk
+            </button>
+        </form>
+
+        <div class="text-center mt-3 border-top pt-3">
+            <p class="text-muted small mb-0">
+                Belum punya akun? <a href="{{ url_for('client.register_client') }}" class="fw-bold text-primary text-decoration-none">Daftar sekarang</a>
+            </p>
+        </div>
+
+        <div class="text-center mt-4">
+            <p class="text-muted mb-0" style="font-size: 0.7rem;">&copy; 2026 Hak Cipta Dilindungi</p>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

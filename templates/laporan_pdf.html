@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+
+{% block title %}Laporan Keuangan - PDF{% endblock %}
+
+{% block content %}
+<!-- Tombol Aksi (Disembunyikan saat dicetak) -->
+<div class="d-flex justify-content-between align-items-center mb-4 mt-2 d-print-none">
+    <a href="/laporan" class="btn btn-outline-secondary px-3"><i class="bi bi-arrow-left me-2"></i>Kembali</a>
+    <button onclick="window.print()" class="btn btn-danger px-4 shadow-sm"><i class="bi bi-file-pdf-fill me-2"></i>Simpan PDF</button>
+</div>
+
+<!-- KERTAS LAPORAN (Yang bakal kecetak) -->
+<div class="card shadow-sm border-0 p-4 p-md-5 mb-5" id="kertas-laporan">
+    <!-- Kop Surat Laporan -->
+    <div class="text-center border-bottom pb-3 mb-4">
+        <h2 class="fw-bolder text-dark mb-0"><i class="bi bi-bar-chart-fill text-danger me-2"></i>LAPORAN KEUANGAN SKRIPSIKUU</h2>
+        <p class="text-muted mb-0">Ringkasan Pemasukan, Pengeluaran, dan Profit Margin</p>
+    </div>
+
+    <!-- 3 Kotak Ringkasan -->
+    <div class="row text-center mb-4 g-3">
+        <div class="col-4">
+            <div class="border rounded p-3 bg-light">
+                <p class="text-muted small fw-bold mb-1">TOTAL PEMASUKAN</p>
+                <h5 class="text-success fw-bolder mb-0">Rp {{ "{:,.0f}".format(tot_masuk).replace(',', '.') }}</h5>
+            </div>
+        </div>
+        <div class="col-4">
+            <div class="border rounded p-3 bg-light">
+                <p class="text-muted small fw-bold mb-1">TOTAL FEE TIM</p>
+                <h5 class="text-danger fw-bolder mb-0">Rp {{ "{:,.0f}".format(tot_keluar).replace(',', '.') }}</h5>
+            </div>
+        </div>
+        <div class="col-4">
+            <div class="border rounded p-3 bg-light border-primary">
+                <p class="text-primary small fw-bold mb-1">LABA BERSIH (ADMIN)</p>
+                <h5 class="text-primary fw-bolder mb-0">Rp {{ "{:,.0f}".format(laba).replace(',', '.') }}</h5>
+            </div>
+        </div>
+    </div>
+
+    <!-- Area Bar Chart -->
+    <h6 class="fw-bold text-muted mb-3 mt-4">GRAFIK 5 PROJECT TERAKHIR</h6>
+    <div class="border rounded p-3 mb-4" style="height: 300px;">
+        <canvas id="barChartKeuangan"></canvas>
+    </div>
+
+    <!-- Tabel Rincian -->
+    <h6 class="fw-bold text-muted mb-3">RINCIAN CASHFLOW PROJECT</h6>
+    <table class="table table-bordered table-sm" style="font-size: 0.85rem;">
+        <thead class="table-light text-center">
+            <tr>
+                <th>Judul Pekerjaan</th>
+                <th>Tanggal Selesai</th>
+                <th>Pemasukan (Rp)</th>
+                <th>Fee Tim (Rp)</th>
+                <th>Laba Admin (Rp)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for t in tugas %}
+            <tr>
+                <td class="fw-bold">{{ t['judul_tugas'] }}</td>
+                <td class="text-center">{{ t['deadline'] }}</td>
+                <td class="text-end text-success">{{ "{:,.0f}".format(t['harga_klien']).replace(',', '.') }}</td>
+                <td class="text-end text-danger">{{ "{:,.0f}".format(t['fee_tim']).replace(',', '.') }}</td>
+                <td class="text-end text-primary fw-bold">{{ "{:,.0f}".format(t['fee_admin']).replace(',', '.') }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="5" class="text-center py-3 text-muted">Belum ada data keuangan bos.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Load Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- Script Eksekusi Bar Chart -->
+<script>
+    // Ambil data dari Python via Jinja2
+    const labelGrafik = {{ labels | safe }};
+    const dataMasuk = {{ grafik_masuk | safe }};
+    const dataKeluar = {{ grafik_keluar | safe }};
+
+    const ctx = document.getElementById('barChartKeuangan').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar', // 🔥 Ini yang bikin jadi Bar Chart 🔥
+        data: {
+            labels: labelGrafik,
+            datasets: [
+                {
+                    label: 'Pemasukan (Dari Klien)',
+                    data: dataMasuk,
+                    backgroundColor: '#10b981', // Warna hijau sukses
+                    borderRadius: 4
+                },
+                {
+                    label: 'Pengeluaran (Fee Tim)',
+                    data: dataKeluar,
+                    backgroundColor: '#ef4444', // Warna merah bahaya
+                    borderRadius: 4
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'top' }
+            },
+            scales: {
+                y: { beginAtZero: true }
+            }
+        }
+    });
+</script>
+
+<!-- CSS Print biar kertas PDF rapih dan grafik ngga kepotong -->
+<style>
+    @media print {
+        body { background-color: white !important; }
+        #sidebar, .navbar, .d-print-none { display: none !important; }
+        #kertas-laporan { box-shadow: none !important; border: none !important; padding: 0 !important; }
+        .main-content { margin-left: 0 !important; padding: 0 !important; width: 100% !important; }
+        /* Paksa chart tetep kerender pas diprint */
+        canvas { max-height: 250px !important; } 
+    }
+</style>
+{% endblock %}

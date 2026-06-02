@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Skripsikuu{% endblock %}</title>
+
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    <meta name="theme-color" content="#1e293b">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='favicon.png') }}">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v={{ range(1, 10000) | random }}">
+
+    <style>
+        #sidebar { overflow-y: auto; max-height: 100vh; padding-bottom: 80px; }
+        #sidebar::-webkit-scrollbar { width: 4px; }
+        #sidebar::-webkit-scrollbar-track { background: transparent; }
+        #sidebar::-webkit-scrollbar-thumb { background-color: rgba(255, 255, 255, 0.2); border-radius: 10px; }
+        .menu-label .chevron-icon { transition: transform 0.3s ease; }
+        .menu-label[aria-expanded="false"] .chevron-icon { transform: rotate(-90deg); }
+
+        .theme-toggle-btn {
+            width: 40px; height: 40px; border-radius: 50% !important;
+            display: inline-flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: all 0.3s ease;
+            border: 1px solid var(--border-kaca) !important;
+            background-color: var(--bg-card) !important; color: var(--text-utama) !important;
+        }
+        .theme-toggle-btn:hover { transform: scale(1.1) rotate(15deg); }
+
+        /* HEADER TETAP DI ATAS BIAR DROPDOWN AMAN DARI ANIMASI BAWAHNYA */
+        .top-header {
+            position: relative !important;
+            z-index: 99999 !important; 
+        }
+        
+        .dropdown-menu {
+            z-index: 999999 !important; 
+        }
+    </style>
+
+    <script>
+        const savedTheme = localStorage.getItem('spectra-theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+    </script>
+
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<div class="sidebar" id="sidebar" data-aos="fade-right" data-aos-duration="600">
+    <div class="brand">
+        <i class="bi bi-rocket-takeoff-fill me-2" style="color: #ff5a1f;"></i>
+        <span class="text-dark">Skripsikuu</span>
+    </div>
+
+    <div class="menu-label d-flex justify-content-between align-items-center" data-bs-toggle="collapse" data-bs-target="#groupMain" aria-expanded="false" role="button" style="cursor: pointer;">
+        <span>Main Feature</span>
+        <i class="bi bi-chevron-down chevron-icon"></i>
+    </div>
+    <div id="groupMain" class="collapse menu-group">
+        <ul class="nav flex-column">
+            <li class="nav-item"><a class="nav-link {% if request.path == '/dashboard' %}active{% endif %}" href="/dashboard"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
+            <li class="nav-item"><a class="nav-link {% if request.path == '/daftar_tugas' %}active{% endif %}" href="/daftar_tugas"><i class="bi bi-card-checklist"></i> Task List</a></li>
+            <li class="nav-item"><a class="nav-link {% if request.path == '/statistik' %}active{% endif %}" href="/statistik"><i class="bi bi-bar-chart-line-fill"></i> Statistics & Analysis</a></li>
+            <li class="nav-item"><a class="nav-link {% if request.path == '/arsip' %}active{% endif %}" href="/arsip"><i class="bi bi-archive-fill"></i> Task Archive</a></li>
+            <li class="nav-item"><a class="nav-link {% if request.path == '/leaderboard' %}active{% endif %}" href="/leaderboard"><i class="bi bi-trophy-fill"></i> Leaderboard</a></li>
+            <li class="nav-item"><a class="nav-link {% if request.path == '/kanban' %}active{% endif %}" href="/kanban"><i class="bi bi-kanban"></i> Kanban Board</a></li>
+        </ul>
+    </div>
+
+    {% if session['role'] in ['admin', 'superadmin'] %}
+    <div class="menu-label d-flex justify-content-between align-items-center mt-3" data-bs-toggle="collapse" data-bs-target="#groupAdmin" aria-expanded="false" role="button" style="cursor: pointer;">
+        <span>Administration</span>
+        <i class="bi bi-chevron-down chevron-icon"></i>
+    </div>
+    <div id="groupAdmin" class="collapse menu-group">
+        <ul class="nav flex-column">
+            <li class="nav-item"><a class="nav-link {% if request.path == '/users' %}active{% endif %}" href="/users"><i class="bi bi-people-fill"></i> Team Manager</a></li>
+            <li class="nav-item"><a class="nav-link {% if request.path == '/keuangan' %}active{% endif %}" href="/keuangan"><i class="bi bi-wallet2"></i> Finance</a></li>
+            <li class="nav-item"><a class="nav-link {% if request.path == '/laporan' %}active{% endif %}" href="/laporan"><i class="bi bi-file-earmark-bar-graph-fill me-2"></i> Report & Pay'Sturbs</a></li>
+            <li class="nav-item"><a class="nav-link {% if request.path == '/kelola_banner' %}active{% endif %}" href="/kelola_banner"><i class="bi bi-images"></i> Kelola Banner</a></li>
+            {% if session['role'] == 'superadmin' %}
+            <li class="nav-item"><a class="nav-link {% if request.path == '/settings' %}active{% endif %}" href="/settings"><i class="bi bi-gear-wide-connected me-2"></i> <span>System Settings</span></a></li>
+            {% endif %}
+        </ul>
+    </div>
+    {% endif %}
+</div>
+
+<div class="main-content">
+    <div class="top-header" style="position: relative; z-index: 99999;">
+        <button class="btn btn-light border shadow-sm btn-menu-mobile d-md-none" id="btnToggleSidebar">
+            <i class="bi bi-list fs-4 text-dark"></i>
+        </button>
+
+        <div class="d-flex align-items-center">
+            <button class="theme-toggle-btn me-3 shadow-sm btn" id="toggleThemeBtn" title="Ganti Mode Tampilan">
+                <i class="bi bi-moon-stars-fill" id="themeIcon"></i>
+            </button>
+
+            <a href="/dashboard" class="text-secondary position-relative me-3 me-sm-4 mt-1 text-decoration-none">
+                <i class="bi bi-bell-fill fs-5"></i>
+                {% if notif_count and notif_count > 0 %}
+                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger shadow-sm" style="font-size: 0.6rem;">{{ notif_count }}</span>
+                {% endif %}
+            </a>
+
+            <div class="dropdown">
+                <button class="btn btn-light dropdown-toggle border shadow-sm d-flex align-items-center" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <img src="{{ session.get('foto') or url_for('static', filename='img/default_avatar.png') }}" alt="Profile" class="rounded-circle shadow-sm me-2" style="width: 32px; height: 32px; object-fit: cover; border: 1px solid #cbd5e1;">
+                    <span class="fw-bold d-none d-sm-inline">{{ session['nama_lengkap'] }}</span>
+                </button>
+
+                <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
+                    <li><a class="dropdown-item py-2" href="/profil"><i class="bi bi-person-badge text-primary me-2"></i>Profil Saya</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item py-2 text-danger fw-bold" href="/logout"><i class="bi bi-box-arrow-right me-2"></i>Logout</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <main class="container-fluid px-0">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="container-fluid px-0 mb-4" data-aos="zoom-in" data-aos-duration="400">
+            {% for category, message in messages %}
+                {% if category == 'success' %}
+                <div class="alert alert-success alert-dismissible fade show shadow-sm border-0" role="alert">
+                    <i class="bi bi-check-circle-fill me-2"></i>{{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                {% elif category == 'warning' or category == 'danger' %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show shadow-sm border-0" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                {% endif %}
+            {% endfor %}
+            </div>
+        {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+        
+        {% block scripts %}{% endblock %}
+    </main>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+
+<script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
+
+<script>
+    // --- NYALAKAN MESIN ANIMASI AWAL ---
+    AOS.init({ duration: 700, easing: 'ease-out-cubic', once: true, offset: 50 });
+
+    // --- LOGIKA GANTI TEMA ---
+    const toggleThemeBtn = document.getElementById('toggleThemeBtn');
+    const themeIcon = document.getElementById('themeIcon');
+
+    function updateIconTema(theme) {
+        if (theme === 'dark') {
+            themeIcon.className = 'bi bi-sun-fill text-warning'; 
+        } else {
+            themeIcon.className = 'bi bi-moon-stars-fill text-secondary'; 
+        }
+    }
+
+    updateIconTema(document.documentElement.getAttribute('data-theme'));
+
+    toggleThemeBtn.addEventListener('click', () => {
+        const currentTheme = document.documentElement.getAttribute('data-theme');
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+        document.documentElement.setAttribute('data-theme', newTheme);
+        localStorage.setItem('spectra-theme', newTheme);
+        updateIconTema(newTheme);
+
+        if (typeof Chart !== 'undefined' && Chart.instances) {
+            Object.values(Chart.instances).forEach(chart => {
+                if(chart.config.type === 'bar') {
+                    let targetColor = newTheme === 'dark' ? '#f8fafc' : '#0f172a';
+                    chart.options.scales.y.ticks.color = targetColor;
+                    chart.options.scales.x.ticks.color = targetColor;
+                    chart.update();
+                }
+            });
+        }
+    });
+
+    // --- LOGIKA SIDEBAR MOBILE ---
+    const btnToggle = document.getElementById('btnToggleSidebar');
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+
+    if(btnToggle) {
+        btnToggle.addEventListener('click', function() {
+            sidebar.classList.toggle('show');
+            overlay.classList.toggle('show');
+        });
+    }
+
+    if(overlay) {
+        overlay.addEventListener('click', function() {
+            sidebar.classList.remove('show');
+            overlay.classList.remove('show');
+        });
+    }
+
+    // Auto-Buka Accordion Menu Aktif 
+    document.addEventListener("DOMContentLoaded", function() {
+        const activeLinks = document.querySelectorAll('.nav-link.active');
+        activeLinks.forEach(link => {
+            const parentGroup = link.closest('.collapse.menu-group');
+            if (parentGroup) {
+                parentGroup.classList.add('show');
+                const label = document.querySelector(`[data-bs-target="#${parentGroup.id}"]`);
+                if(label) label.setAttribute('aria-expanded', 'true');
+            }
+        });
+    });
+</script>
+
+</body>
+</html>

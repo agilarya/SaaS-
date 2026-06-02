@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+
+{% block title %}Papan Peringkat - Skripsikuu{% endblock %}
+
+{% block content %}
+<style>
+    /* ==========================================================
+       CSS KHUSUS LEADERBOARD (ISOLASI DARI STYLE.CSS UTAMA)
+       ========================================================== */
+    .l-header-section { margin-bottom: 2rem; }
+    .l-podium-card {
+        background: var(--bg-card); border: 1px solid var(--border-kaca);
+        border-radius: 16px; padding: 24px; position: relative;
+        box-shadow: var(--shadow-spectra); transition: transform 0.3s ease, box-shadow 0.3s ease;
+        height: 100%; display: flex; flex-direction: column;
+    }
+    .l-podium-card:hover { transform: translateY(-5px); }
+    .l-podium-card.rank-1-card {
+        border: 2px solid #fbbf24 !important;
+        box-shadow: 0 10px 25px rgba(251, 191, 36, 0.15) !important;
+    }
+    .medal-ribbon {
+        position: absolute; top: -15px; right: 20px;
+        width: 45px; /* INI PENYELAMATNYA BIAR GAK SEGEDE GABAN WKWK */
+        filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2));
+        z-index: 10; animation: melayang 3s ease-in-out infinite;
+    }
+    .l-avatar-wrapper { position: relative; display: inline-block; }
+    .l-avatar-img {
+        width: 60px; height: 60px; border-radius: 50%;
+        border: 3px solid var(--border-kaca); object-fit: cover;
+    }
+    .rank-1-card .l-avatar-img { border-color: #fbbf24; }
+    .l-rank-badge {
+        position: absolute; bottom: -5px; right: -5px;
+        width: 24px; height: 24px; border-radius: 50%; display: flex;
+        align-items: center; justify-content: center; font-weight: 800;
+        font-size: 0.75rem; color: white; border: 2px solid var(--bg-card);
+    }
+    .badge-rank-1 { background-color: #6366f1; }
+    .badge-rank-2 { background-color: #8b5cf6; }
+    .badge-rank-3 { background-color: #a855f7; }
+    .l-stats-grid {
+        display: flex; justify-content: space-between; margin-top: 20px;
+        padding-top: 20px; border-top: 1px dashed var(--border-kaca);
+    }
+    .l-stat-item { text-align: center; }
+    .l-stat-label {
+        font-size: 0.65rem; text-transform: uppercase; color: var(--text-muted);
+        letter-spacing: 1px; font-weight: 700; margin-bottom: 4px;
+    }
+    .l-stat-value { font-size: 1.1rem; font-weight: 800; color: var(--text-utama); }
+    .l-ranking-table-wrapper {
+        background: var(--bg-card); border: 1px solid var(--border-kaca);
+        border-radius: 16px; padding: 20px; box-shadow: var(--shadow-spectra);
+    }
+    .l-ranking-table th {
+        background-color: transparent !important; border-bottom: 1px solid var(--border-kaca) !important;
+        color: var(--text-muted) !important; font-size: 0.75rem; text-transform: uppercase;
+        letter-spacing: 1px; font-weight: 700;
+    }
+    .l-ranking-table td {
+        background-color: transparent !important; border-bottom: 1px dashed var(--border-kaca) !important;
+        color: var(--text-utama); vertical-align: middle; padding: 15px 10px;
+    }
+    .l-ranking-table tr:last-child td { border-bottom: none !important; }
+    .l-table-rank-number {
+        width: 30px; height: 30px; background-color: var(--bg-light-box); border-radius: 50%;
+        display: inline-flex; align-items: center; justify-content: center;
+        font-weight: 800; font-size: 0.85rem; color: var(--text-utama);
+    }
+    @keyframes melayang {
+        0% { transform: translateY(0); }
+        50% { transform: translateY(-5px); }
+        100% { transform: translateY(0); }
+    }
+</style>
+
+<div class="container-fluid px-0">
+    <div class="l-header-section mt-2">
+        <h3 class="fw-bolder text-dark mb-1"><i class="bi bi-trophy-fill text-spectra me-2"></i>Leaderboard</h3>
+        <p class="text-muted small">Automatic updates based on total tasks and team performance.</p>
+    </div>
+
+    <div class="row mb-5" style="row-gap: 20px;">
+        {% for p in peringkat %}
+            {% if loop.index <= 3 %}
+            <div class="col-lg-4 col-md-6">
+                <div class="l-podium-card {% if loop.index == 1 %}rank-1-card{% endif %}">
+
+                    {% if loop.index == 1 %}
+                    <img src="https://cdn-icons-png.flaticon.com/512/3176/3176294.png" class="medal-ribbon" alt="Juara 1">
+                    {% endif %}
+
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="l-avatar-wrapper">
+                            {% if p['foto'] and p['foto'] != '' %}
+                                <img src="{{ p['foto'] }}" class="l-avatar-img" alt="Avatar">
+                            {% else %}
+                                <img src="https://ui-avatars.com/api/?name={{ p['nama_lengkap'] }}&background=random&color=fff&bold=true" class="l-avatar-img" alt="Avatar">
+                            {% endif %}
+
+                            <div class="l-rank-badge badge-rank-{{ loop.index }}">{{ loop.index }}</div>
+                        </div>
+                        <div>
+                            <h6 class="fw-bolder text-dark mb-0 text-truncate" style="max-width: 150px;">{{ p['nama_lengkap'] }}</h6>
+                            <small class="text-spectra fw-bold" style="font-size: 0.75rem;">@worker_{{ p['id'] | default('01') }}</small>
+                        </div>
+                    </div>
+
+                    <div class="l-stats-grid">
+                        <div class="l-stat-item">
+                            <div class="l-stat-label">Projects</div>
+                            <div class="l-stat-value">{{ p['total_tugas'] }}</div>
+                        </div>
+                        <div class="l-stat-item">
+                            <div class="l-stat-label">Win Rate</div>
+                            <div class="l-stat-value">100%</div>
+                        </div>
+                        <div class="l-stat-item">
+                            <div class="l-stat-label">Points</div>
+                            <div class="l-stat-value text-warning">{{ p['total_tugas'] * 150 }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+
+    <div class="l-header-section mb-3">
+        <h4 class="fw-bolder text-dark mb-1">Global Ranking</h4>
+    </div>
+
+    <div class="l-ranking-table-wrapper">
+        <div class="table-responsive">
+            <table class="table l-ranking-table mb-0 text-center">
+                <thead>
+                    <tr>
+                        <th style="width: 80px;">Rank</th>
+                        <th class="text-start">User Name</th>
+                        <th>Projects Done</th>
+                        <th>Win Rate</th>
+                        <th>Points Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in peringkat %}
+                        {% if loop.index > 3 %}
+                        <tr>
+                            <td>
+                                <div class="l-table-rank-number">{{ loop.index }}</div>
+                            </td>
+                            <td class="text-start">
+                                <div class="d-flex align-items-center gap-2">
+                                    {% if p['foto'] and p['foto'] != '' %}
+                                        <img src="{{ p['foto'] }}" class="rounded-circle shadow-sm" style="width: 32px; height: 32px; object-fit: cover;" alt="Avatar">
+                                    {% else %}
+                                        <img src="https://ui-avatars.com/api/?name={{ p['nama_lengkap'] }}&background=random&color=fff&size=32" class="rounded-circle shadow-sm" alt="Avatar">
+                                    {% endif %}
+
+                                    <div>
+                                        <div class="fw-bolder text-dark" style="font-size: 0.9rem;">{{ p['nama_lengkap'] }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="fw-bold">{{ p['total_tugas'] }}</td>
+                            <td class="text-muted">100%</td>
+                            <td class="fw-bolder text-warning">{{ p['total_tugas'] * 150 }}</td>
+                        </tr>
+                        {% endif %}
+                    {% else %}
+                        {% if peringkat|length == 0 %}
+                        <tr>
+                            <td colspan="5" class="py-5 text-center border-0">
+                                <i class="bi bi-inbox fs-1 text-muted opacity-25 mb-3 d-block"></i>
+                                <h6 class="text-muted fw-bold">Belum Ada Pejuang.</h6>
+                                <p class="text-muted small">Papan peringkat masih kosong, ayo gas kerjain project!</p>
+                            </td>
+                        </tr>
+                        {% endif %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

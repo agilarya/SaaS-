@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Dashboard Manajemen</title>
+    
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    <meta name="theme-color" content="#0f172a">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='favicon.png') }}">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='login.css') }}">
+</head>
+<body>
+
+    <div class="login-card">
+        <div class="text-center mb-4">
+            <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo Skripsikuu" style="height: 90px; width: auto; margin-bottom: 20px; border-radius: 16px; box-shadow: 0 8px 20px rgba(0,0,0,0.2);">
+            <h1 class="login-title h4 mb-1">Workspace</h1>
+            <p class="text-secondary small">Masuk untuk mengelola tugas tim secara real-time</p>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-danger alert-dismissible fade show border-0 text-start p-3 mb-3" role="alert" style="background: rgba(239, 68, 68, 0.15); color: #fca5a5; border-radius: 16px; font-size: 0.85rem;">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ message }}
+                        <button type="button" class="btn-close btn-close-white small shadow-none" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <div class="form-floating mb-3">
+                <input type="text" class="form-control" id="username" name="username" placeholder="Username" autocomplete="off" required>
+                <label for="username">👤 Username</label>
+            </div>
+
+            <div class="form-floating mb-4">
+                <input type="password" class="form-control" id="password" name="password" placeholder="Password" required>
+                <label for="password">🔒 Password</label>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-login w-100 text-white mb-2">Masuk Dashboard <i class="bi bi-arrow-right-short ms-1"></i></button>
+        </form>
+
+        <div class="text-center mt-3" id="installContainer" style="display: none;">
+            <button id="btnInstallApp" type="button" class="btn btn-outline-light btn-sm fw-bold w-100 py-2 border-white border-opacity-25 text-white-50" style="border-radius: 16px;">
+                <i class="bi bi-download me-2"></i>Install Aplikasi PWA
+            </button>
+        </div>
+
+        <div class="text-center mt-4 pt-2 border-top border-secondary border-opacity-10">
+            <small class="text-secondary fw-light" style="font-size: 0.75rem;">Sistem Manajemen Pribadi @Skripsikuu.team</small>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js');
+            });
+        }
+
+        let promptInstall;
+        const installContainer = document.getElementById('installContainer');
+        const btnInstall = document.getElementById('btnInstallApp');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            promptInstall = e;
+            installContainer.style.display = 'block';
+        });
+
+        btnInstall.addEventListener('click', async () => {
+            if (!promptInstall) return;
+            promptInstall.prompt();
+            const { outcome } = await promptInstall.userChoice;
+            console.log(`User memilih: ${outcome}`);
+            promptInstall = null;
+            installContainer.style.display = 'none';
+        });
+
+        window.addEventListener('appinstalled', () => {
+            installContainer.style.display = 'none';
+            console.log('Skripsikuu PWA Berhasil Terpasang!');
+        });
+    </script>
+</body>
+</html>

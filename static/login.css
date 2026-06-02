@@ -1,0 +1,126 @@
+/* ===================================================
+   TEMA LOGIN 3D NEON GLASSMORPHISM - SPECTRA
+=================================================== */
+body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    background-color: #0f172a; /* Slate Gelap Premium */
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    position: relative;
+    overflow: hidden;
+}
+
+/* --- MESIN ANIMASI 3D BOLA CAHAYA MELELEH (ORBS) --- */
+body::before, body::after {
+    content: "";
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    z-index: 0;
+    opacity: 0.4;
+}
+/* Bola Oren Spectra Kiri Atas */
+body::before {
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, #ff5a1f 0%, rgba(255,90,31,0) 70%);
+    top: -100px;
+    left: -100px;
+    animation: floatOrbOne 12s ease-in-out infinite;
+}
+/* Bola Indigo Kanan Bawah */
+body::after {
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, #4f46e5 0%, rgba(79,70,229,0) 70%);
+    bottom: -150px;
+    right: -150px;
+    animation: floatOrbTwo 15s ease-in-out infinite;
+}
+
+/* KARTU LOGIN UTAMA (EFEK KACA MELAYANG) */
+.login-card {
+    background: rgba(15, 23, 42, 0.6); /* Kaca gelap transparan */
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 28px;
+    box-shadow: 
+        0 30px 60px rgba(0, 0, 0, 0.4),
+        inset 0 2px 4px rgba(255, 255, 255, 0.1);
+    padding: 45px 40px;
+    width: 100%;
+    max-width: 420px;
+    z-index: 1;
+    transform: translateZ(0);
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s ease;
+}
+.login-card:hover {
+    transform: translateY(-8px) scale(1.01);
+    box-shadow: 
+        0 40px 80px rgba(255, 90, 31, 0.15),
+        0 20px 40px rgba(0, 0, 0, 0.5),
+        inset 0 2px 4px rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 90, 31, 0.3);
+}
+
+.login-title { 
+    font-weight: 800; 
+    color: #ffffff; 
+    font-size: 2rem; 
+    letter-spacing: -0.5px;
+}
+
+/* FORM INPUT MODERN */
+.form-floating > .form-control {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    color: #ffffff;
+    transition: all 0.3s ease;
+}
+.form-floating > .form-control:focus {
+    background: rgba(255, 255, 255, 0.07);
+    border-color: #ff5a1f; /* Nyala Oren Spectra pas diklik */
+    box-shadow: 0 0 0 0.25rem rgba(255, 90, 31, 0.15);
+    color: #ffffff;
+}
+.form-floating > label { 
+    color: #94a3b8; 
+}
+.form-floating > .form-control:focus ~ label,
+.form-floating > .form-control:not(:placeholder-shown) ~ label {
+    color: #ff5a1f;
+}
+
+/* TOMBOL MASUK NEON SPECTRA */
+.btn-login {
+    background: linear-gradient(135deg, #ff733b 0%, #ff5a1f 100%);
+    border: none;
+    border-radius: 16px;
+    padding: 14px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    box-shadow: 0 4px 15px rgba(255, 90, 31, 0.3);
+    transition: all 0.3s ease;
+}
+.btn-login:hover {
+    background: linear-gradient(135deg, #ff5a1f 0%, #d94411 100%);
+    box-shadow: 0 12px 25px rgba(255, 90, 31, 0.5);
+    transform: translateY(-2px);
+}
+
+/* TIMELINE LINTAS ANIMASI */
+@keyframes floatOrbOne {
+    0% { transform: translateY(0) scale(1); }
+    50% { transform: translateY(40px) scale(1.1); }
+    100% { transform: translateY(0) scale(1); }
+}
+@keyframes floatOrbTwo {
+    0% { transform: translateY(0) scale(1); }
+    50% { transform: translateY(-50px) scale(1.05); }
+    100% { transform: translateY(0) scale(1); }
+}

@@ -1,0 +1,272 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Skripsikuu{% endblock %}
+
+{% block content %}
+
+    {% with wa_links = get_flashed_messages(category_filter=['wa_ready']) %}
+        {% if wa_links %}
+            {% for link in wa_links %}
+            <div class="alert alert-success shadow-sm border-0 mb-4 rounded-4" role="alert" style="background: linear-gradient(to right, #d1e7dd, #c3e6cb);" data-aos="fade-down">
+                <div class="d-flex flex-column flex-md-row align-items-center justify-content-between">
+                    <div class="mb-3 mb-md-0">
+                        <h5 class="fw-bolder text-success mb-1">
+                            <i class="bi bi-check-circle-fill me-2"></i>Tugas Rebutan Berhasil Dibuat!
+                        </h5>
+                        <p class="text-dark small mb-0">Tugas belum ada yang ambil. Sebarkan info ini ke grup tim sekarang!</p>
+                    </div>
+                    <a href="{{ link }}" target="_blank" class="btn btn-success btn-lg fw-bold rounded-pill px-4 shadow-sm text-white border-0" style="background-color: #25D366; text-decoration: none;">
+                        <i class="bi bi-whatsapp me-2"></i> Bagikan ke WA
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    {% if daftar_banner and daftar_banner|length > 0 %}
+    <div class="row mb-4" data-aos="fade-down" data-aos-duration="800">
+        <div class="col-12">
+            <div id="bannerCarousel" class="carousel slide banner-wrapper shadow-sm rounded-4 overflow-hidden" style="border: 1px solid var(--border-kaca);" data-bs-ride="carousel" data-bs-interval="4000">
+                {% if daftar_banner|length > 1 %}
+                <div class="carousel-indicators">
+                    {% for banner in daftar_banner %}
+                    <button type="button" data-bs-target="#bannerCarousel" data-bs-slide-to="{{ loop.index0 }}" class="{% if loop.first %}active{% endif %}" aria-current="{% if loop.first %}true{% else %}false{% endif %}" aria-label="Slide {{ loop.index }}"></button>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <div class="carousel-inner">
+                    {% for banner in daftar_banner %}
+                    <div class="carousel-item {% if loop.first %}active{% endif %}">
+                        <img src="{{ url_for('static', filename='banners/' ~ banner) }}"
+                        class="d-block w-100 banner-img"
+                        alt="Banner Promo"
+                        loading="lazy"
+                        decoding="async">
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="spectra-hero-banner mb-4" data-aos="zoom-in" data-aos-delay="100">
+        <div class="spectra-hero-content">
+            <h1 class="spectra-hero-title mb-3">Team Management<br>Even <span class="text-spectra">Simple.</span></h1>
+            <p class="text-muted fw-medium lh-lg mb-4" style="font-size: 0.95rem;">
+                Hello, <strong class="text-spectra">{{ session['nama_lengkap'] }}!</strong> 👋<br>
+                {% if session['role'] == 'member' %}
+                    Ready to make some money again today? Don’t let up, boss! Check out the available tasks below.
+                {% elif session['role'] == 'reviewer' %}
+                    There’s a task that requires your attention to detail. Make sure the quality of the project remains the top priority!
+                {% else %}
+                    Track team productivity, review financial reports, and manage incoming tasks in real time.
+                {% endif %}
+            </p>
+            <div class="d-flex flex-wrap gap-2">
+                <a href="/daftar_tugas" class="btn btn-primary rounded-pill px-4 shadow-sm">View Task List <i class="bi bi-arrow-right ms-2"></i></a>
+                {% if session['role'] in ['admin', 'superadmin'] %}
+                    <a href="/tambah_tugas" class="btn btn-outline-secondary rounded-pill px-4 border text-dark">Create a New Task</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {% if session['role'] == 'member' %}
+    <div class="row mb-4">
+        <div class="col-md-6 mb-3" data-aos="fade-up" data-aos-delay="150">
+            <div class="card card-hover-lift shadow-sm h-100 p-4 border-0 rounded-4">
+                <div class="card-body d-flex align-items-center p-0">
+                    <div class="bg-spectra-soft p-3 rounded-circle me-3"><i class="bi bi-wallet2 fs-4"></i></div>
+                    <div>
+                        <h6 class="text-muted small mb-1 fw-bold text-uppercase letter-spacing-1">My Wallet</h6>
+                        <h4 class="fw-bolder mb-0">Rp {{ "{:,.0f}".format(pendapatan_member | default(0, true)).replace(',', '.') }}</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-3" data-aos="fade-up" data-aos-delay="250">
+            <div class="card card-hover-lift shadow-sm h-100 p-4 border-0 rounded-4">
+                <div class="card-body d-flex align-items-center p-0">
+                    <div class="bg-success bg-opacity-10 text-success p-3 rounded-circle me-3"><i class="bi bi-check2-all fs-4"></i></div>
+                    <div>
+                        <h6 class="text-muted small mb-1 fw-bold text-uppercase letter-spacing-1">Taks Done</h6>
+                        <h4 class="fw-bolder mb-0">{{ tugas_selesai }} <span class="fs-6 text-muted fw-normal">Project</span></h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if session['role'] in ['admin', 'superadmin'] %}
+    <!-- 4 KOTAK METRIK CEPAT -->
+    <div class="row g-3 mb-4" data-aos="fade-up" data-aos-delay="150">
+        <div class="col-6 col-xl-3">
+            <div class="card shadow-sm border-0 rounded-4 h-100 p-3" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);">
+                <div class="text-white-50 small fw-bold text-uppercase mb-2"><i class="bi bi-briefcase-fill me-1"></i> Total Tasks</div>
+                <h2 class="fw-bolder text-white mb-0">{{ total_tugas }}</h2>
+            </div>
+        </div>
+        <div class="col-6 col-xl-3">
+            <div class="card shadow-sm rounded-4 h-100 p-3" style="background-color: var(--bg-card); border: 1px solid var(--border-kaca) !important;">
+                <div class="text-primary small fw-bold text-uppercase mb-2"><i class="bi bi-arrow-repeat me-1"></i> In Progress</div>
+                <h2 class="fw-bolder text-dark mb-0">{{ tugas_proses | default('0') }}</h2>
+            </div>
+        </div>
+        <div class="col-6 col-xl-3">
+            <div class="card shadow-sm rounded-4 h-100 p-3" style="background-color: var(--bg-card); border: 1px solid var(--border-kaca) !important;">
+                <div class="text-warning small fw-bold text-uppercase mb-2"><i class="bi bi-search me-1"></i> Need Review</div>
+                <h2 class="fw-bolder text-dark mb-0">{{ tugas_review | default('0') }}</h2>
+            </div>
+        </div>
+        <div class="col-6 col-xl-3">
+            <div class="card shadow-sm rounded-4 h-100 p-3" style="background-color: var(--bg-card); border: 1px solid var(--border-kaca) !important;">
+                <div class="text-danger small fw-bold text-uppercase mb-2"><i class="bi bi-exclamation-circle-fill me-1"></i> Unclaimed</div>
+                <h2 class="fw-bolder text-dark mb-0">{{ tersedia | length }}</h2>
+            </div>
+        </div>
+    </div>
+
+    <!-- AREA GRAFIK & TUGAS MENGANGGUR -->
+    <div class="row g-4 mb-5">
+        <!-- Grafik Performa -->
+        <div class="col-xl-8" data-aos="fade-right" data-aos-delay="250">
+            <div class="card spectra-chart-card card-hover-lift shadow-sm h-100 p-4 border-0 rounded-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h6 class="text-muted small fw-bold text-uppercase mb-0"><i class="bi bi-bar-chart-fill text-spectra me-2"></i>Team Performance</h6>
+                    <a href="/laporan_performa" class="btn btn-sm btn-light border rounded-pill fw-bold" style="font-size: 0.75rem;">View Leaderboard</a>
+                </div>
+                <div style="position: relative; height: 220px; width: 100%;">
+                    <canvas id="memberChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tugas Orphan / Darurat -->
+        <div class="col-xl-4" data-aos="fade-left" data-aos-delay="300">
+            <div class="card shadow-sm h-100 p-4 rounded-4" style="background-color: var(--bg-card); border: 1px solid var(--border-kaca) !important;">
+                <h6 class="text-muted small fw-bold text-uppercase mb-3"><i class="bi bi-exclamation-triangle-fill text-danger me-2"></i>Needs Attention</h6>
+                
+                <div class="d-flex flex-column gap-3">
+                    {% for t in tersedia[:3] %}
+                    <div class="p-3 rounded-3" style="background-color: var(--bg-canvas); border: 1px dashed rgba(244, 63, 94, 0.3);">
+                        <div class="d-flex justify-content-between align-items-start mb-1">
+                            <span class="fw-bold text-dark text-truncate d-block" style="max-width: 80%; font-size: 0.9rem;">{{ t['judul_tugas'] }}</span>
+                            <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25" style="font-size: 0.65rem;">Unclaimed</span>
+                        </div>
+                        <div class="text-muted" style="font-size: 0.75rem;"><i class="bi bi-cash me-1"></i>Rp {{ "{:,.0f}".format(t['fee_tim']).replace(',', '.') }}</div>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4 text-muted opacity-50">
+                        <i class="bi bi-check2-circle fs-2 d-block mb-2"></i>
+                        <small>Aman bosku!<br>Tidak ada tugas menganggur.</small>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                {% if tersedia|length > 3 %}
+                <a href="/daftar_tugas" class="btn btn-outline-secondary btn-sm w-100 mt-auto rounded-pill fw-bold">Lihat Semua ({{ tersedia|length }})</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if session['role'] == 'member' %}
+    <div class="d-flex align-items-center mb-3 mt-2" data-aos="fade-up" data-aos-delay="300">
+        <h5 class="fw-bolder mb-0"><i class="bi bi-lightning-fill text-warning me-2"></i>Job Board</h5>
+    </div>
+    <div class="row mb-5" id="papan-rebutan">
+        {% for t in tersedia %}
+        <div class="col-md-6 col-lg-4 mb-3" data-aos="fade-up" data-aos-delay="{{ 300 + (loop.index0 * 100) }}">
+            <div class="card lowongan-card card-hover-lift shadow-sm h-100 p-4 border-0 rounded-4">
+                <div class="card-body p-0 d-flex flex-column h-100">
+                    <h5 class="fw-bolder mb-1">{{ t['judul_tugas'] }}</h5>
+                    <h5 class="mb-3 text-spectra fw-bolder"><i class="bi bi-cash-stack me-2"></i>Rp {{ "{:,.0f}".format(t['fee_tim'] | default(0, true)).replace(',', '.') }}</h5>
+                    <p class="text-muted small lh-lg">{{ (t['deskripsi'] or '')[:70] }}...</p>
+
+                    <div class="d-flex justify-content-between align-items-center mt-auto border-top pt-3 flex-wrap gap-2" style="border-color: var(--border-kaca) !important;">
+                        <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 py-2 px-3"><i class="bi bi-clock me-1"></i>{{ t['deadline'] or 'No Deadline' }}</span>
+                        <div class="d-flex gap-2">
+                            <a href="/tugas/{{ t['id'] }}" class="btn btn-light border text-secondary btn-sm fw-bold px-3 rounded-pill"><i class="bi bi-eye"></i></a>
+                            <a href="/ambil_tugas/{{ t['id'] }}" class="btn btn-primary btn-sm fw-bold px-4 rounded-pill">Claim</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-12" data-aos="zoom-in" data-aos-delay="300">
+            <div class="card bg-transparent border-0 text-center p-5">
+                <lottie-player
+                    src="https://lottie.host/362dbd28-a62c-4ec7-91ed-fbd6de12a4dc/n4OqXJXY84.json"
+                    background="transparent"
+                    speed="1"
+                    style="width: 280px; height: 280px; margin: -20px auto -10px;"
+                    loop
+                    autoplay>
+                </lottie-player>
+                <h5 class="text-dark fw-bolder mt-3">No New Job Openings Yet</h5>
+                <p class="text-muted small">Take a break for now, boss, or wait for a notification to come in.</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // BUNGKUS PAKAI KURUNG KURAWAL BIAR VARIABEL GAK TABRAKAN PAS SWUP BOLAK-BALIK
+    {
+        let dashTheme = document.documentElement.getAttribute('data-theme') || 'light';
+        let dashTextColor = dashTheme === 'dark' ? '#f8fafc' : '#0f172a';
+
+        {% if session['role'] in ['admin', 'superadmin'] %}
+
+        // 1. HANCURKAN GRAFIK LAMA KALAU MASIH NYANGKUT DI MEMORI
+        if (window.myMemberChart) {
+            window.myMemberChart.destroy();
+        }
+
+        // 2. BIKIN GRAFIK BARU
+        let canvasElem = document.getElementById('memberChart');
+        if (canvasElem) {
+            let ctx = canvasElem.getContext('2d');
+            window.myMemberChart = new Chart(ctx, {
+                type: 'bar',
+                data: { 
+                    labels: {{ labels_member|tojson }}, 
+                    datasets: [{ 
+                        label: 'Tugas Selesai', 
+                        data: {{ data_member|tojson }}, 
+                        backgroundColor: '#ff5a1f', 
+                        borderRadius: 8, 
+                        barThickness: 25 
+                    }] 
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { 
+                            beginAtZero: true, 
+                            grid: { color: dashTheme === 'dark' ? 'rgba(255,255,255,0.05)' : '#e2e8f0', borderDash: [4,4] }, 
+                            ticks: { color: dashTextColor } 
+                        },
+                        x: { 
+                            grid: { display: false }, 
+                            ticks: { color: dashTextColor, font: { weight: 'bold' } } 
+                        }
+                    }
+                }
+            });
+        }
+        {% endif %}
+    }
+</script>
+{% endblock %}

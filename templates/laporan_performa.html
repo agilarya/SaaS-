@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}Performa Kinerja Tim - Skripsikuu{% endblock %}
+
+{% block extra_css %}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+    <div class="d-flex justify-content-between align-items-center mb-4 mt-2" data-aos="fade-down">
+        <div>
+            <h4 class="fw-bolder mb-1 text-dark"><i class="bi bi-bar-chart-steps text-warning me-2"></i>Performa Tim (Leaderboard)</h4>
+            <p class="text-muted small mb-0">Pantau produktivitas, beban kerja, dan tingkat penyelesaian tugas tiap member.</p>
+        </div>
+        <a href="/laporan" class="btn btn-outline-secondary btn-sm fw-bold px-3 rounded-pill shadow-sm">
+            <i class="bi bi-arrow-left me-1"></i> Kembali
+        </a>
+    </div>
+
+    <div class="row g-4 mb-5">
+        {% for m in performa %}
+        
+        {% set total = m['total_tugas'] | int %}
+        {% set selesai = m['tugas_selesai'] | int %}
+        {% set win_rate = (selesai / total * 100) | round(0) if total > 0 else 0 %}
+        
+        <div class="col-md-6 col-xl-4" data-aos="fade-up" data-aos-delay="{{ loop.index * 100 }}">
+            <div class="leaderboard-card p-4 position-relative h-100 d-flex flex-column">
+                
+                <div class="rank-badge {% if loop.index == 1 %}rank-1{% elif loop.index == 2 %}rank-2{% elif loop.index == 3 %}rank-3{% else %}rank-other{% endif %}">
+                    {{ loop.index }}
+                </div>
+
+                <div class="d-flex align-items-center gap-3 mb-4">
+                    <img src="{{ m['foto'] or url_for('static', filename='img/default_avatar.png') }}" alt="Avatar" class="avatar-lg">
+                    <div>
+                        <h5 class="fw-bold mb-0 text-dark text-truncate" style="max-width: 180px;">{{ m['nama_lengkap'] }}</h5>
+                        <div class="text-muted small">@{{ m['username'] }}</div>
+                    </div>
+                </div>
+
+                <div class="row text-center g-2 mb-4 flex-grow-1">
+                    <div class="col-4">
+                        <div class="bg-light border rounded-3 p-2 h-100">
+                            <h5 class="fw-bolder mb-0 text-dark">{{ m['total_tugas'] }}</h5>
+                            <span class="text-muted fw-bold" style="font-size: 0.65rem; text-transform: uppercase;">Total</span>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="bg-success bg-opacity-10 border border-success border-opacity-25 rounded-3 p-2 h-100">
+                            <h5 class="fw-bolder mb-0 text-success">{{ m['tugas_selesai'] }}</h5>
+                            <span class="text-success fw-bold" style="font-size: 0.65rem; text-transform: uppercase;">Done</span>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="bg-primary bg-opacity-10 border border-primary border-opacity-25 rounded-3 p-2 h-100">
+                            <h5 class="fw-bolder mb-0 text-primary">{{ m['tugas_aktif'] or 0 }}</h5>
+                            <span class="text-primary fw-bold" style="font-size: 0.65rem; text-transform: uppercase;">Proses</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-auto border-top pt-3" style="border-color: var(--border-kaca) !important;">
+                    <div class="d-flex justify-content-between align-items-end mb-1">
+                        <span class="small fw-bold text-muted">Win Rate (Selesai)</span>
+                        <span class="small fw-bolder {% if win_rate >= 80 %}text-success{% elif win_rate >= 50 %}text-warning{% else %}text-danger{% endif %}">{{ win_rate }}%</span>
+                    </div>
+                    <div class="progress mb-3" style="height: 6px; background-color: var(--bg-canvas);">
+                        <div class="progress-bar {% if win_rate >= 80 %}bg-success{% elif win_rate >= 50 %}bg-warning{% else %}bg-danger{% endif %}" style="width: {{ win_rate }}%"></div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between align-items-center bg-dark text-white rounded-3 p-3">
+                        <span class="small fw-medium text-white-50"><i class="bi bi-wallet2 me-1"></i> Total Cuan</span>
+                        <span class="fw-bolder text-warning">Rp {{ "{:,.0f}".format(m['total_pendapatan'] or 0).replace(',', '.') }}</span>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        {% else %}
+        <div class="col-12 text-center py-5">
+            <h5 class="text-muted fw-bold">Belum ada data member yang bisa ditampilkan.</h5>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

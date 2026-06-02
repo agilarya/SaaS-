@@ -1,0 +1,329 @@
+{% extends "base.html" %}
+
+{% block title %}Team Manager - Skripsikuu{% endblock %}
+
+{% block content %}
+<style>
+    /* ==========================================================
+       CSS KHUSUS TEAM MANAGER (MODERN FLOATING CARDS)
+       ========================================================== */
+
+    /* 1. Panel Form Tambah Rekan */
+    .t-form-panel {
+        background: linear-gradient(145deg, var(--bg-card) 0%, var(--bg-canvas) 100%);
+        border: 1px solid var(--border-kaca);
+        border-radius: 24px;
+        padding: 30px;
+        box-shadow: var(--shadow-spectra);
+        position: sticky;
+        top: 25px; 
+    }
+    .t-form-panel input, .t-form-panel select {
+        background-color: var(--bg-canvas);
+        border: 1px solid var(--border-kaca);
+        color: var(--text-utama);
+        transition: all 0.3s ease;
+    }
+    .t-form-panel input:focus, .t-form-panel select:focus {
+        box-shadow: 0 0 0 3px rgba(255, 90, 31, 0.15);
+        border-color: #ff5a1f;
+        transform: translateY(-2px);
+    }
+
+    /* 2. Divider Role (Jabatan) */
+    .t-role-divider {
+        display: flex;
+        align-items: center;
+        margin: 35px 0 15px 0;
+    }
+    .t-role-divider::after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background: dashed 1px var(--border-kaca);
+        margin-left: 15px;
+    }
+    .t-role-title {
+        font-size: 0.8rem;
+        letter-spacing: 1.5px;
+        font-weight: 800;
+        text-transform: uppercase;
+        padding: 6px 16px;
+        border-radius: 20px;
+        background: var(--bg-light-box);
+        border: 1px solid var(--border-kaca);
+    }
+
+    /* 3. Kartu User Mengambang */
+    .t-user-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-kaca);
+        border-radius: 16px;
+        padding: 16px 20px;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        box-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.02);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        gap: 15px;
+    }
+
+    .t-user-card:hover {
+        transform: translateX(8px) scale(1.01);
+        border-color: #ff5a1f; 
+        box-shadow: -4px 10px 20px rgba(255, 90, 31, 0.08);
+        z-index: 10;
+    }
+
+    .t-user-info {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        flex: 1;
+    }
+
+    .t-user-avatar {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid var(--bg-canvas);
+        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    }
+
+    .t-badge-superadmin { background-color: rgba(15, 23, 42, 0.1); color: var(--text-utama); border-color: var(--border-kaca); }
+    .t-badge-admin { background-color: rgba(239, 68, 68, 0.1); color: #ef4444; border-color: rgba(239, 68, 68, 0.2); }
+    .t-badge-reviewer { background-color: rgba(245, 158, 11, 0.1); color: #f59e0b; border-color: rgba(245, 158, 11, 0.2); }
+    .t-badge-member { background-color: rgba(59, 130, 246, 0.1); color: #3b82f6; border-color: rgba(59, 130, 246, 0.2); }
+
+    [data-theme="dark"] .t-badge-admin { color: #fca5a5; }
+    [data-theme="dark"] .t-badge-reviewer { color: #fde047; }
+    [data-theme="dark"] .t-badge-member { color: #93c5fd; }
+
+    @media (max-width: 576px) {
+        .t-user-card { flex-direction: column; align-items: flex-start; }
+        .t-user-actions { width: 100%; display: flex; justify-content: flex-end; margin-top: 10px; border-top: 1px dashed var(--border-kaca); padding-top: 10px; }
+    }
+</style>
+
+<div class="container-fluid px-0">
+    <div class="d-flex justify-content-between align-items-center mb-4 mt-2" data-aos="fade-down" data-aos-duration="600">
+        <div>
+            <h4 class="fw-bolder text-dark mb-1"><i class="bi bi-people-fill text-spectra me-2"></i>Team Manager</h4>
+            <p class="text-muted small mb-0">Atur akses, hierarki jabatan, dan pantau anggota tim lu di sini.</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-4 mb-4" data-aos="fade-up" data-aos-duration="800" data-aos-delay="100">
+            <div class="t-form-panel">
+                <div class="d-flex align-items-center mb-4 pb-3 border-bottom" style="border-color: var(--border-kaca) !important;">
+                    <div class="bg-spectra-soft p-2 rounded-3 me-3"><i class="bi bi-person-plus-fill text-spectra fs-5"></i></div>
+                    <h6 class="fw-bolder text-dark mb-0">Rekrut Personel</h6>
+                </div>
+
+                <form method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                    <div class="mb-3">
+                        <label class="form-label form-label-custom fw-bold"><i class="bi bi-person me-1"></i> NAMA LENGKAP</label>
+                        <input type="text" name="nama_lengkap" class="form-control rounded-pill px-3 py-2" placeholder="Contoh: Budi Santoso" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label form-label-custom fw-bold"><i class="bi bi-at me-1"></i> USERNAME LOGIN</label>
+                        <input type="text" name="username" class="form-control rounded-pill px-3 py-2" placeholder="Huruf kecil tanpa spasi" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label form-label-custom fw-bold"><i class="bi bi-key me-1"></i> PASSWORD</label>
+                        <input type="password" name="password" class="form-control rounded-pill px-3 py-2" placeholder="Minimal 6 karakter rahasia" required>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label form-label-custom fw-bold"><i class="bi bi-diagram-2 me-1"></i> KASTA / JABATAN</label>
+                        <select name="role" class="form-select rounded-pill px-3 py-2" style="border-color: rgba(255,90,31,0.5);" required>
+                            <option value="member">Member (Pekerja)</option>
+                            <option value="reviewer">Reviewer (Pengecek)</option>
+                            {% if session['role'] == 'superadmin' %}
+                            <option value="admin">Admin (Manajemen)</option>
+                            <option value="superadmin">Super Admin (Owner)</option>
+                            {% endif %}
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 fw-bold shadow-sm py-2 rounded-pill mt-2">
+                        <i class="bi bi-send-fill me-2"></i>Buat Akun Sekarang
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <div id="teamListWrapper">
+
+                {% set hirarki = [
+                    ('superadmin', 'Owner / Super Admin', 'bi-shield-lock-fill', 't-badge-superadmin'),
+                    ('admin', 'Management / Admin', 'bi-person-badge-fill', 't-badge-admin'),
+                    ('reviewer', 'Quality Control / Reviewer', 'bi-search', 't-badge-reviewer'),
+                    ('member', 'Executors / Member', 'bi-person-workspace', 't-badge-member')
+                ] %}
+
+                {% set ada_data = namespace(value=false) %}
+                {% set timer = namespace(delay=100) %} 
+
+                {% for id_role, nama_role, ikon_role, badge_class in hirarki %}
+
+                    {% set hitung = namespace(jumlah=0) %}
+                    {% for u in users %}
+                        {% if u['role'] == id_role %}{% set hitung.jumlah = hitung.jumlah + 1 %}{% endif %}
+                    {% endfor %}
+
+                    {% if hitung.jumlah > 0 %}
+                        {% set ada_data.value = true %}
+
+                        <div class="t-role-divider role-group-header" data-aos="fade-in" data-aos-delay="{{ timer.delay }}">
+                            <div class="t-role-title text-dark">
+                                <i class="bi {{ ikon_role }} me-2"></i>{{ nama_role }}
+                                <span class="badge bg-white text-dark border ms-2 rounded-pill shadow-sm" style="font-size: 0.6rem;">{{ hitung.jumlah }}</span>
+                            </div>
+                        </div>
+                        {% set timer.delay = timer.delay + 50 %}
+
+                        {% for u in users %}
+                            {% if u['role'] == id_role %}
+
+                                {% set avatar_colors = ['bg-primary', 'bg-success', 'bg-danger', 'bg-info', 'bg-warning text-dark'] %}
+                                {% set avatar_color = avatar_colors[loop.index0 % 5] %}
+
+                                <div class="t-user-card tim-row shadow-sm" data-aos="fade-left" data-aos-delay="{{ timer.delay }}">
+
+                                    <div class="t-user-info">
+                                        {% if u['foto'] and u['foto'] != '' %}
+                                            <img src="{{ u['foto'] }}" class="t-user-avatar" alt="Avatar">
+                                        {% else %}
+                                            <div class="t-user-avatar {{ avatar_color }} d-flex justify-content-center align-items-center text-white fw-bold" style="font-size: 1.2rem;">
+                                                {{ u['nama_lengkap'][0]|upper }}
+                                            </div>
+                                        {% endif %}
+
+                                        <div>
+                                            <div class="fw-bolder text-dark" style="font-size: 1.05rem; letter-spacing: -0.3px;">{{ u['nama_lengkap'] }}</div>
+                                            <div class="text-muted" style="font-size: 0.75rem;">
+                                                <i class="bi bi-hash"></i>{{ u['id'] }} <span class="mx-1">•</span> <span class="text-spectra fw-bold">@{{ u['username'] }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="t-user-actions d-flex align-items-center gap-3">
+                                        <span class="badge px-3 py-2 rounded-pill border {{ badge_class }}">
+                                            {{ u['role']|capitalize }}
+                                        </span>
+
+                                        <div class="action-buttons">
+                                            {% if u['id'] != session['id'] %}
+                                                <a href="/edit_user/{{ u['id'] }}" class="btn btn-light border btn-sm text-warning shadow-sm btn-icon-round" title="Edit Data"><i class="bi bi-pencil-square"></i></a>
+
+                                                {% if session['role'] == 'superadmin' or (session['role'] == 'admin' and u['role'] in ['member', 'reviewer']) %}
+                                                    <a href="/hapus_user/{{ u['id'] }}" class="btn btn-light border btn-sm text-danger shadow-sm btn-icon-round" title="Pecat" onclick="return confirm('Yakin mau depak {{ u['nama_lengkap'] }} dari tim?')"><i class="bi bi-trash-fill"></i></a>
+                                                {% endif %}
+                                            {% else %}
+                                                <span class="badge bg-light text-muted border px-3 py-2 rounded-pill"><i class="bi bi-person-check me-1"></i>Anda</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+
+                                </div>
+                                {% set timer.delay = timer.delay + 50 %} 
+
+                            {% endif %}
+                        {% endfor %}
+
+                    {% endif %}
+                {% endfor %}
+
+                {% if not ada_data.value %}
+                    <div class="card bg-transparent border-0 text-center p-5 mt-4" data-aos="zoom-in" data-aos-duration="1000">
+                        <lottie-player 
+                            src="https://lottie.host/a8a5b281-a083-4a69-8260-19dff39f5068/3b2J0T2XQo.json" 
+                            background="transparent" 
+                            speed="1" 
+                            style="width: 250px; height: 250px; margin: -20px auto -10px;" 
+                            loop 
+                            autoplay>
+                        </lottie-player>
+                        <h6 class="text-dark fw-bolder mt-3">Belum ada tim terdaftar.</h6>
+                        <p class="text-muted small">Coba rekrut personel pertama lu lewat form di samping.</p>
+                    </div>
+                {% endif %}
+
+                <div class="text-center mt-4 d-none" id="wadahBtnSemua">
+                    <button class="btn btn-outline-secondary btn-sm fw-bold px-4 rounded-pill shadow-sm" onclick="tampilkanSemuaTim()">
+                        <i class="bi bi-chevron-down me-1"></i> Tampilkan Semua Anggota
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const BATAS_TAMPIL = 6; 
+        const barisTim = document.querySelectorAll('.tim-row');
+        const wadahBtn = document.getElementById('wadahBtnSemua');
+
+        if (barisTim.length > BATAS_TAMPIL) {
+            wadahBtn.classList.remove('d-none');
+
+            barisTim.forEach((baris, index) => {
+                if (index >= BATAS_TAMPIL) {
+                    baris.style.display = 'none';
+                    baris.classList.add('disembunyikan');
+                }
+            });
+
+            sembunyikanHeaderKosong();
+        }
+    });
+
+    function tampilkanSemuaTim() {
+        document.querySelectorAll('.disembunyikan').forEach(baris => {
+            baris.style.display = 'flex'; 
+            baris.classList.remove('disembunyikan');
+            // Tambahin sedikit animasi pas dia dipanggil
+            baris.classList.add('animate__animated', 'animate__fadeInDown');
+        });
+
+        document.querySelectorAll('.role-group-header').forEach(header => {
+            header.style.display = 'flex'; 
+        });
+
+        document.getElementById('wadahBtnSemua').classList.add('d-none');
+    }
+
+    function sembunyikanHeaderKosong() {
+        const elemenList = document.getElementById('teamListWrapper').children;
+        let headerAktif = null;
+        let jumlahUserKelihatan = 0;
+
+        Array.from(elemenList).forEach(elemen => {
+            if (elemen.classList.contains('role-group-header')) {
+                if (headerAktif && jumlahUserKelihatan === 0) {
+                    headerAktif.style.display = 'none';
+                }
+                headerAktif = elemen;
+                jumlahUserKelihatan = 0;
+            } else if (elemen.classList.contains('tim-row')) {
+                if (elemen.style.display !== 'none') {
+                    jumlahUserKelihatan++;
+                }
+            }
+        });
+
+        if (headerAktif && jumlahUserKelihatan === 0) {
+            headerAktif.style.display = 'none';
+        }
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block title %}Slip Gaji - {{ member['nama_lengkap'] }}{% endblock %}
+
+{% block content %}
+<!-- Tombol Aksi (Disembunyikan saat dicetak) -->
+<div class="d-flex justify-content-between align-items-center mb-4 mt-2 d-print-none">
+    <a href="/laporan" class="btn btn-outline-secondary px-3"><i class="bi bi-arrow-left me-2"></i>Kembali</a>
+    <button onclick="window.print()" class="btn btn-primary px-4 shadow-sm"><i class="bi bi-printer-fill me-2"></i>Cetak / Save PDF</button>
+</div>
+
+<!-- KERTAS SLIP GAJI (Ini yang bakal kecetak) -->
+<div class="card shadow-sm border-0 p-4 p-md-5 mb-5" id="kertas-slip">
+    <!-- Header Slip -->
+    <div class="row border-bottom pb-4 mb-4">
+        <div class="col-sm-6">
+            <h2 class="fw-bolder text-primary mb-0"><i class="bi bi-wallet2 me-2"></i>SKRIPSIKUU</h2>
+            <p class="text-muted small mt-1 mb-0">Slip Gaji & Ringkasan Fee Member</p>
+        </div>
+        <div class="col-sm-6 text-sm-end mt-3 mt-sm-0">
+            <h5 class="fw-bold mb-1">Diberikan Kepada:</h5>
+            <h4 class="text-dark mb-0">{{ member['nama_lengkap'] }}</h4>
+            <p class="text-muted small mb-0">Username: {{ member['username'] }}</p>
+        </div>
+    </div>
+
+    <!-- Tabel Rincian Tugas -->
+    <h6 class="fw-bold text-muted mb-3">RINCIAN TUGAS DISELESAIKAN (Status: Done)</h6>
+    <div class="table-responsive">
+        <table class="table table-bordered mb-0">
+            <thead class="table-light text-center">
+                <tr>
+                    <th class="py-2" width="10%">ID</th>
+                    <th class="py-2 text-start">Nama Pekerjaan</th>
+                    <th class="py-2" width="20%">Tgl Selesai / Deadline</th>
+                    <th class="py-2 text-end" width="25%">Fee (Rp)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for t in tugas_selesai %}
+                <tr>
+                    <td class="text-center fw-bold text-muted">#{{ t['id'] }}</td>
+                    <td class="fw-bold">{{ t['judul_tugas'] }}</td>
+                    <td class="text-center text-muted small">{{ t['deadline'] }}</td>
+                    <td class="text-end fw-bold text-success">{{ "{:,.0f}".format(t['fee_tim']).replace(',', '.') }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="4" class="text-center py-4 text-muted">
+                        <em>Belum ada tugas yang diselesaikan. Kasihan, belum gajian. 😭</em>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <!-- Total Gaji -->
+            <tfoot class="table-light">
+                <tr>
+                    <td colspan="3" class="text-end fw-bolder py-3 fs-5">TOTAL PENDAPATAN :</td>
+                    <td class="text-end fw-bolder text-primary py-3 fs-5">Rp {{ "{:,.0f}".format(total_gaji).replace(',', '.') }}</td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+
+    <!-- Tanda Tangan Digital -->
+    <div class="row mt-5 pt-3">
+        <div class="col-6 text-center">
+            <p class="mb-5 text-muted">Diterima Oleh,</p>
+            <br>
+            <p class="fw-bold text-dark text-decoration-underline mb-0">{{ member['nama_lengkap'] }}</p>
+            <p class="text-muted small">Member Eksekutor</p>
+        </div>
+        <div class="col-6 text-center">
+            <p class="mb-5 text-muted">Disetujui Oleh,</p>
+            <br>
+            <p class="fw-bold text-dark text-decoration-underline mb-0">{{ session['nama_lengkap'] }}</p>
+            <p class="text-muted small">Administrator / Manajemen</p>
+        </div>
+    </div>
+</div>
+
+<!-- Tambahan CSS buat ngerapihin mode print (Kertas PDF) -->
+<style>
+    @media print {
+        body { background-color: white !important; }
+        #sidebar, .navbar, .d-print-none { display: none !important; }
+        #kertas-slip { box-shadow: none !important; border: none !important; padding: 0 !important; }
+        .main-content { margin-left: 0 !important; padding: 0 !important; width: 100% !important; }
+    }
+</style>
+{% endblock %}

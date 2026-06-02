@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+
+{% block title %}Kanban Board - Skripsikuu{% endblock %}
+
+{% block extra_css %}
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 mt-2 px-3 flex-wrap gap-3">
+    <div>
+        <h4 class="fw-bolder text-dark mb-1"><i class="bi bi-kanban text-primary me-2"></i>Kanban Board</h4>
+        <p class="text-muted small mb-0">Geser (Drag & Drop) kartu untuk mengubah status tugas.</p>
+    </div>
+    <a href="/daftar_tugas" class="btn btn-outline-secondary btn-sm shadow-sm fw-bold rounded-pill px-3 border"><i class="bi bi-table me-1"></i> Mode Tabel</a>
+</div>
+
+<div id="kanbanAlertArea" class="px-3 mb-3"></div>
+
+<div class="kanban-board-container px-3">
+
+    <div class="kanban-column">
+        <div class="k-header txt-todo">
+            <span><i class="bi bi-lightbulb-fill me-2"></i> To-Do</span>
+            <span class="badge bg-secondary rounded-pill" id="count-todo">{{ todo|length }}</span>
+        </div>
+        <div class="k-body" id="col-todo" data-status="To-Do">
+            {% for t in todo %}
+            <div class="k-card" data-id="{{ t['id'] }}">
+                <div class="k-title">{{ t['judul_tugas'] }}</div>
+                <div class="k-meta">
+                    <div class="k-avatar-area"><i class="bi bi-person-circle fs-5 text-secondary"></i> <span>Belum Diambil</span></div>
+                    <a href="/tugas/{{ t['id'] }}" class="btn btn-light rounded-circle p-1 shadow-sm"><i class="bi bi-chevron-right text-secondary"></i></a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="kanban-column">
+        <div class="k-header txt-progress">
+            <span><i class="bi bi-rocket-takeoff-fill me-2"></i> In Progress</span>
+            <span class="badge bg-primary rounded-pill" id="count-progress">{{ in_progress|length }}</span>
+        </div>
+        <div class="k-body" id="col-progress" data-status="In Progress">
+            {% for t in in_progress %}
+            <div class="k-card" data-id="{{ t['id'] }}">
+                <div class="k-title">{{ t['judul_tugas'] }}</div>
+                <div class="k-meta">
+                    <div class="k-avatar-area"><i class="bi bi-person-circle fs-5 text-primary"></i> <span>{{ t['nama_member'] }}</span></div>
+                    <a href="/tugas/{{ t['id'] }}" class="btn btn-light rounded-circle p-1 shadow-sm"><i class="bi bi-chevron-right text-primary"></i></a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="kanban-column">
+        <div class="k-header txt-revisi">
+            <span><i class="bi bi-shield-exclamation me-2"></i> Revisi</span>
+            <span class="badge bg-danger rounded-pill" id="count-revisi">{{ revisi|length }}</span>
+        </div>
+        <div class="k-body" id="col-revisi" data-status="Revision Needed">
+            {% for t in revisi %}
+            <div class="k-card" data-id="{{ t['id'] }}">
+                <div class="k-title">{{ t['judul_tugas'] }}</div>
+                <div class="k-meta">
+                    <div class="k-avatar-area"><i class="bi bi-person-circle fs-5 text-danger"></i> <span>{{ t['nama_member'] }}</span></div>
+                    <a href="/tugas/{{ t['id'] }}" class="btn btn-light rounded-circle p-1 shadow-sm"><i class="bi bi-chevron-right text-danger"></i></a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="kanban-column">
+        <div class="k-header txt-review">
+            <span><i class="bi bi-search me-2"></i> Review</span>
+            <span class="badge bg-info text-dark rounded-pill" id="count-review">{{ review|length }}</span>
+        </div>
+        <div class="k-body" id="col-review" data-status="Ready for Review">
+            {% for t in review %}
+            <div class="k-card" data-id="{{ t['id'] }}">
+                <div class="k-title">{{ t['judul_tugas'] }}</div>
+                <div class="k-meta">
+                    <div class="k-avatar-area"><i class="bi bi-person-workspace fs-5 text-info"></i> <span>{{ t['nama_reviewer'] or 'Reviewer' }}</span></div>
+                    <a href="/tugas/{{ t['id'] }}" class="btn btn-light rounded-circle p-1 shadow-sm"><i class="bi bi-chevron-right text-info"></i></a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="kanban-column">
+        <div class="k-header txt-done">
+            <span><i class="bi bi-check-circle-fill me-2"></i> Done</span>
+            <span class="badge bg-success rounded-pill" id="count-done">{{ done|length }}</span>
+        </div>
+        <div class="k-body" id="col-done" data-status="Done">
+            {% for t in done %}
+            <div class="k-card" data-id="{{ t['id'] }}">
+                <div class="k-title text-decoration-line-through text-muted">{{ t['judul_tugas'] }}</div>
+                <div class="k-meta">
+                    <div class="k-avatar-area text-success"><i class="bi bi-check-all fs-5"></i> <span>Selesai</span></div>
+                    <a href="/tugas/{{ t['id'] }}" class="btn btn-light rounded-circle p-1 shadow-sm"><i class="bi bi-chevron-right text-success"></i></a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const columns = ['col-todo', 'col-progress', 'col-revisi', 'col-review', 'col-done'];
+        
+        columns.forEach(colId => {
+            const el = document.getElementById(colId);
+            
+            new Sortable(el, {
+                group: 'kanban-board', // Nama grup sama biar bisa pindah antar kolom
+                animation: 150,
+                ghostClass: 'sortable-ghost',
+                
+                // Momen pas kartu selesai dilepas (Drop)
+                onEnd: function (evt) {
+                    const itemEl = evt.item;  // Kartu yang digeser
+                    const toList = evt.to;    // Kolom tujuan
+                    
+                    const taskId = itemEl.getAttribute('data-id');
+                    const newStatus = toList.getAttribute('data-status');
+                    const oldStatus = evt.from.getAttribute('data-status');
+
+                    // Kalau posisinya gak berubah (status sama), abaikan
+                    if (oldStatus === newStatus) return;
+
+                    // Update Angka Badge
+                    document.getElementById(`count-${evt.from.id.split('-')[1]}`).innerText = evt.from.children.length;
+                    document.getElementById(`count-${toList.id.split('-')[1]}`).innerText = toList.children.length;
+
+                    // Tembak Data ke Backend pakai Fetch API (Tanpa Reload)
+                    fetch('/update_status_kanban', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            tugas_id: taskId,
+                            status_baru: newStatus
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            tampilkanNotif('success', `Mantap! Status tugas berhasil diubah ke <b>${newStatus}</b>.`);
+                        } else {
+                            // Kalau gagal/gak punya akses, balikin kartunya ke asal
+                            tampilkanNotif('danger', data.pesan || 'Akses ditolak atau terjadi kesalahan!');
+                            evt.from.appendChild(itemEl); 
+                            
+                            // Balikin angka badge
+                            document.getElementById(`count-${evt.from.id.split('-')[1]}`).innerText = evt.from.children.length;
+                            document.getElementById(`count-${toList.id.split('-')[1]}`).innerText = toList.children.length;
+                        }
+                    })
+                    .catch(err => {
+                        tampilkanNotif('danger', 'Gagal menyambung ke server.');
+                        evt.from.appendChild(itemEl); // Balikin kartu
+                    });
+                }
+            });
+        });
+
+        // Fungsi Bikin Notifikasi Popup
+        function tampilkanNotif(tipe, pesan) {
+            const area = document.getElementById('kanbanAlertArea');
+            const icon = tipe === 'success' ? 'check-circle-fill' : 'exclamation-triangle-fill';
+            
+            area.innerHTML = `
+                <div class="alert alert-${tipe} alert-dismissible fade show shadow-sm border-0" role="alert">
+                    <i class="bi bi-${icon} me-2"></i> ${pesan}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            `;
+            
+            // Auto hapus notif setelah 3 detik
+            setTimeout(() => { area.innerHTML = ''; }, 3000);
+        }
+    });
+</script>
+{% endblock %}

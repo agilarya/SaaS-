@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Akun - Skripsikuu{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 mt-2">
+    <div>
+        <h4 class="fw-bolder text-dark mb-1"><i class="bi bi-person-gear text-warning me-2"></i>Edit Akun Tim</h4>
+        <p class="text-muted small mb-0">Ubah data profil, reset password, atau ganti level akses anggota.</p>
+    </div>
+    <a href="/users" class="btn btn-light border btn-sm shadow-sm fw-bold"><i class="bi bi-arrow-left me-1"></i>Kembali</a>
+</div>
+
+<div class="row">
+    <!-- col-md-8 col-lg-6 biar formnya proporsional di tengah layar -->
+    <div class="col-md-8 col-lg-6">
+        <div class="card shadow-sm border-0 border-top border-warning border-4 mb-4">
+            <div class="card-body p-4">
+
+                <form method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted">NAMA LENGKAP</label>
+                        <input type="text" name="nama_lengkap" class="form-control form-control-sm border-secondary" value="{{ user['nama_lengkap'] }}" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted">USERNAME</label>
+                        <input type="text" name="username" class="form-control form-control-sm border-secondary" value="{{ user['username'] }}" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted">PASSWORD BARU <span class="text-primary">(Opsional)</span></label>
+                        <input type="password" name="password" class="form-control form-control-sm border-secondary" placeholder="Kosongkan jika tidak ingin ganti password">
+                        <div class="form-text" style="font-size: 0.75rem;">*Hanya diisi jika member lupa password dan minta di-reset.</div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold text-muted">LEVEL / ROLE</label>
+                        <select name="role" class="form-select form-select-sm border-warning" required>
+                            <!-- Logika pre-select otomatis jabatan saat ini -->
+                            <option value="member" {% if user['role'] == 'member' %}selected{% endif %}>Member (Pekerja)</option>
+                            <option value="reviewer" {% if user['role'] == 'reviewer' %}selected{% endif %}>Reviewer (Pengecek)</option>
+
+                            {% if session['role'] == 'superadmin' %}
+                            <option value="admin" {% if user['role'] == 'admin' %}selected{% endif %}>Admin (Bos / Manajemen)</option>
+                            <option value="superadmin" {% if user['role'] == 'superadmin' %}selected{% endif %}>Super Admin (IT / Owner)</option>
+                            {% endif %}
+                        </select>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+                        <a href="/users" class="btn btn-light border btn-sm fw-bold px-4">Batal</a>
+                        <button type="submit" class="btn btn-warning btn-sm shadow-sm fw-bold px-4 text-dark"><i class="bi bi-save-fill me-1"></i>Update Akun</button>
+                    </div>
+
+                </form>
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

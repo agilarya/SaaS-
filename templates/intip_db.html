@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>CCTV Database - Skripsikuu</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        /* Tweak khusus biar tabelnya proper */
+        .table-container {
+            max-height: 600px;
+            overflow-y: auto;
+            overflow-x: auto;
+        }
+        /* Bikin judul kolom nempel di atas saat di-scroll */
+        .table th {
+            position: sticky;
+            top: 0;
+            background: #1e293b;
+            color: white;
+            z-index: 1;
+            box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.4);
+        }
+        /* Styling Sidebar Menu */
+        .list-group-item.active {
+            background: linear-gradient(135deg, #3b82f6, #2563eb) !important;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4 shadow-sm">
+    <div class="container-fluid px-4">
+        <a class="navbar-brand fw-bold text-warning" href="#">🕵️‍♂️ CCTV Sistem Pusat</a>
+        <div class="ms-auto">
+            <a href="/dashboard" class="btn btn-outline-light btn-sm fw-bold">⬅ Tutup CCTV & Kembali</a>
+        </div>
+    </div>
+</nav>
+
+<div class="container-fluid px-4 mb-5">
+    <div class="row">
+
+        <div class="col-md-3 mb-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-primary text-white fw-bold">
+                    📂 Daftar Tabel DB
+                </div>
+                <div class="card-body p-2">
+                    <div class="list-group list-group-flush">
+                        {% for t in tables %}
+                        <a href="?table={{ t['name'] }}" class="list-group-item list-group-item-action fw-semibold mb-1 rounded {% if table_name == t['name'] %}active text-white shadow-sm{% else %}text-secondary{% endif %}">
+                            📊 {{ t['name'] }}
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-9">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center fw-bold py-3">
+                    <span>Menampilkan Data: <span class="text-warning text-uppercase ms-1">{{ table_name }}</span></span>
+                    <input type="text" id="searchInput" class="form-control form-control-sm w-auto border-0" placeholder="🔍 Cari data kilat..." style="min-width: 250px;">
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive table-container bg-white">
+                        <table class="table table-hover table-striped mb-0 text-center align-middle" id="dataTable">
+                            <thead>
+                                <tr>
+                                    {% for col in columns %}
+                                    <th class="py-3 text-nowrap px-3">{{ col }}</th>
+                                    {% endfor %}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for row in data %}
+                                <tr>
+                                    {% for col in columns %}
+                                    <td class="text-nowrap px-3" style="max-width: 250px; overflow: hidden; text-overflow: ellipsis;" title="{{ row[col] }}">
+                                        {{ row[col] }}
+                                    </td>
+                                    {% endfor %}
+                                </tr>
+                                {% else %}
+                                <tr><td colspan="{{ columns|length }}" class="text-center p-5 text-muted fst-italic">Tabel ini masih kosong bos.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer bg-light text-muted small text-center py-2">
+                    *Membatasi tampilan maksimal 50 baris data terbaru untuk menjaga performa server.
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    document.getElementById('searchInput').addEventListener('keyup', function() {
+        let filter = this.value.toLowerCase();
+        let rows = document.querySelectorAll('#dataTable tbody tr');
+
+        rows.forEach(row => {
+            // Gabungin semua teks di dalam satu baris biar gampang dicari
+            let text = row.textContent.toLowerCase();
+            // Kalau teks yang diketik ada di baris itu, tampilin. Kalau nggak, sembunyiin.
+            row.style.display = text.includes(filter) ? '' : 'none';
+        });
+    });
+</script>
+
+</body>
+</html>

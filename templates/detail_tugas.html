@@ -1,0 +1,264 @@
+{% extends "base.html" %}
+
+{% block title %}Detail Pekerjaan - Skripsikuu{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 mt-3">
+    <div>
+        <h3 class="fw-bolder text-dark mb-1">
+            <i class="bi bi-journal-check text-primary me-2"></i>Project Details
+        </h3>
+        <p class="text-muted small mb-0">Assignment information, payment history, and project discussion forum.</p>
+    </div>
+    <a href="/daftar_tugas" class="btn btn-outline-secondary btn-sm shadow-sm fw-bold px-3 rounded-pill">
+        <i class="bi bi-arrow-left me-1"></i> Back
+    </a>
+</div>
+
+<div class="row">
+    <div class="col-lg-8 mb-4">
+
+        <div class="card shadow-sm border-0 rounded-4 overflow-hidden mb-5" data-aos="fade-up" data-aos-delay="150">
+            <div class="card-body p-4 p-md-5">
+                <div class="d-flex gap-2 mb-3 flex-wrap">
+                    <span class="badge py-2 px-3 fw-bold rounded-pill shadow-sm
+                        {% if tugas['status'] == 'To-Do' %}bg-secondary
+                        {% elif tugas['status'] == 'In Progress' %}bg-primary
+                        {% elif tugas['status'] == 'Revision Needed' %}bg-warning text-dark
+                        {% else %}bg-success{% endif %}">
+                        <i class="bi bi-activity me-1"></i> Status: {{ tugas['status'] }}
+                    </span>
+                    <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 py-2 px-3 fw-bold rounded-pill shadow-sm">
+                        <i class="bi bi-clock-history me-1"></i> Deadline: {{ tugas['deadline'] }}
+                    </span>
+                    <span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 py-2 px-3 fw-bold rounded-pill shadow-sm">
+                        <i class="bi bi-person-workspace me-1"></i> Worker: {% if tugas['nama_member'] %} {{ tugas['nama_member'] }} {% else %} Not available yet 🔥 {% endif %}
+                    </span>
+                </div>
+
+                <h3 class="text-dark fw-bolder mb-4">{{ tugas['judul_tugas'] }}</h3>
+
+                <div class="text-secondary mb-5 lh-lg" style="font-size: 1.05rem;">
+                    {{ tugas['deskripsi'] }}
+                </div>
+
+                <div class="bg-light p-4 rounded-4 border border-light-subtle">
+                    <h6 class="fw-bolder text-dark mb-3">
+                        <i class="bi bi-folder-symlink text-primary me-2"></i>Project Materials from the Admin
+                    </h6>
+                    {% if tugas.file_admin %}
+                        <div class="d-flex flex-wrap gap-2">
+                            {% set daftar_file = tugas.file_admin.split(',') %}
+                            {% for file in daftar_file %}
+                                {% if file.startswith('http') %}
+                                    <a href="{{ file }}" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill fw-bold shadow-sm d-inline-flex align-items-center">
+                                        <i class="bi bi-cloud-arrow-down-fill me-2 fs-5"></i>
+                                        <span class="text-truncate" style="max-width: 150px;">{{ file.split('/')[-1] }}</span>
+                                    </a>
+                                {% else %}
+                                    <a href="{{ url_for('download_file', filename=file) }}" class="btn btn-outline-secondary btn-sm rounded-pill fw-bold shadow-sm d-inline-flex align-items-center">
+                                        <i class="bi bi-hdd-fill me-2 fs-5"></i>
+                                        <span class="text-truncate" style="max-width: 150px;">{{ file }}</span>
+                                    </a>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted small mb-0 fst-italic">The admin did not attach any files.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow-sm border-0 rounded-4 mb-4">
+            <div class="card-header bg-white fw-bold border-bottom pt-4 pb-3 px-4 rounded-top-4">
+                <i class="bi bi-clock-history text-secondary me-2"></i>File Upload History & Revisions
+            </div>
+            <div class="card-body p-4">
+                {% for s in submissions %}
+                    <div class="border rounded-4 p-4 mb-4 bg-white shadow-sm position-relative">
+                        <span class="position-absolute top-0 end-0 badge bg-primary m-3 rounded-pill">Version {{ s['versi'] }}</span>
+
+                        <div class="mb-3">
+                            <strong class="d-block mb-2 text-dark"><i class="bi bi-file-earmark-zip-fill text-warning me-1"></i> Deposit File:</strong>
+                            <div class="d-flex flex-wrap gap-2">
+                                {% set daftar_file_tugas = s['file_path'].split(',') %}
+                                {% for nama_file in daftar_file_tugas %}
+                                    {% if nama_file.startswith('http') %}
+                                        <a href="{{ nama_file }}" target="_blank" class="btn btn-primary btn-sm rounded-pill shadow-sm fw-bold">
+                                            <i class="bi bi-cloud-download me-1"></i> {{ nama_file.split('/')[-1][:20] }}...
+                                        </a>
+                                    {% else %}
+                                        <a href="{{ url_for('download_file', filename=nama_file) }}" class="btn btn-outline-primary btn-sm rounded-pill fw-bold">
+                                            <i class="bi bi-download me-1"></i> {{ nama_file[:20] }}...
+                                        </a>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <div class="p-3 bg-light rounded-3 small text-secondary mb-3 border">
+                            <strong class="text-dark">Worker's Notes:</strong><br>
+                            {{ s['catatan_member'] }}
+                        </div>
+
+                        {% for r in reviews %}
+                            {% if r['submission_id'] == s['id'] %}
+                                <div class="alert {% if r['hasil'] == 'Approved' %}alert-success border-success{% else %}alert-warning border-warning{% endif %} p-3 small mb-0 bg-opacity-10 border-start border-4 rounded-end-3">
+                                    <strong class="d-block mb-1 text-dark">
+                                        {% if r['hasil'] == 'Approved' %}<i class="bi bi-patch-check-fill text-success me-1"></i>{% else %}<i class="bi bi-exclamation-triangle-fill text-warning me-1"></i>{% endif %}
+                                        Reviewer's Decision ({{ r['hasil'] }}):
+                                    </strong>
+                                    {{ r['komentar'] }}
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center p-5">
+                        <i class="bi bi-inbox fs-1 text-muted opacity-25 mb-3 d-block"></i>
+                        <p class="text-muted mb-0">No job files have been submitted to the system yet.</p>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        {% if tugas['member_id'] %}
+            <div class="card shadow-sm border-0 rounded-4 mb-4">
+                <div class="card-header bg-dark text-white fw-bold pt-3 pb-3 px-4 rounded-top-4">
+                    <i class="bi bi-chat-dots me-2"></i> Team Discussion Room
+                </div>
+                <div class="card-body p-4" style="max-height: 500px; overflow-y: auto; background-color: #f0f2f5;">
+                    {% if diskusi %}
+                        {% for d in diskusi %}
+                            <div class="mb-3 {% if d['user_id'] == session['id'] %}text-end{% endif %}">
+                                <div class="d-inline-block p-3 rounded-4 shadow-sm {% if d['user_id'] == session['id'] %}bg-primary text-white rounded-bottom-0{% else %}bg-white border rounded-top-0{% endif %}" style="max-width: 80%; text-align: left;">
+                                    <div class="fw-bolder small mb-1" style="{% if d['user_id'] == session['id'] %}color: #e0e0e0;{% else %}color: #495057;{% endif %}">
+                                        {{ d['nama_lengkap'] }}
+                                        <span class="badge {% if d['role'] == 'superadmin' or d['role'] == 'admin' %}bg-danger{% elif d['role'] == 'reviewer' %}bg-warning text-dark{% else %}bg-info text-dark{% endif %} ms-1" style="font-size: 0.6rem;">{{ d['role']|upper }}</span>
+                                    </div>
+                                    <p class="mb-1" style="white-space: pre-wrap; font-size: 0.95rem; line-height: 1.5;">{{ d['pesan'] }}</p>
+                                    <div class="text-end mt-1" style="font-size: 0.7rem; {% if d['user_id'] == session['id'] %}color: #b3d4fc !important;{% else %}color: #adb5bd;{% endif %}">
+                                        {{ d['waktu_indo'] }}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center my-5">
+                            <span class="badge bg-secondary bg-opacity-25 text-secondary px-3 py-2 rounded-pill fw-normal">There are no comments yet. Please start a discussion.</span>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="card-footer bg-white p-3 rounded-bottom-4 border-top-0">
+                    <form action="/tugas/{{ tugas['id'] }}" method="POST">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <input type="hidden" name="aksi" value="komentar">
+                        <div class="input-group input-group-lg shadow-sm rounded-pill overflow-hidden border">
+                            <textarea name="pesan" class="form-control border-0" rows="1" placeholder="Ketik pesan..." required style="font-size: 0.95rem; resize: none; padding-top: 12px; padding-left: 20px;"></textarea>
+                            <button class="btn btn-primary px-4 fw-bold" type="submit"><i class="bi bi-send-fill me-1"></i> Kirim</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        {% else %}
+            <div class="card shadow-sm border-0 rounded-4 mb-4 bg-light">
+                <div class="card-body text-center text-muted py-5">
+                    <i class="bi bi-lock-fill fs-1 text-secondary mb-3 d-block opacity-50"></i>
+                    <h5 class="fw-bolder">Discussion Room (Locked)</h5>
+                    <p class="mb-0 small">The chat window will open automatically once this task is assigned to a worker.</p>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="col-lg-4">
+        {% if tugas['status'] == 'Done' %}
+            <div class="card shadow-sm border-0 rounded-4 bg-success bg-opacity-10 border-start border-success border-5 text-center p-4 mb-4">
+                <i class="bi bi-check-circle-fill text-success mb-3" style="font-size: 3.5rem;"></i>
+                <h4 class="fw-bolder text-success mb-2">Mission Complete!</h4>
+                <p class="small text-success text-opacity-75 mb-0 fw-medium">This job has been approved. It cannot be revised any further.</p>
+            </div>
+        {% else %}
+
+            {% if session['role'] == 'member' and tugas['member_id'] == session['id'] %}
+                {% if tugas['status'] in ['In Progress', 'Revision Needed', 'To-Do'] %}
+                    <div class="card shadow-sm border-0 rounded-4 border-top border-primary border-4 mb-4">
+                        <div class="card-header bg-white text-dark fw-bolder border-bottom-0 pt-4 pb-0">
+                            <i class="bi bi-cloud-arrow-up-fill text-primary me-2 fs-5"></i> Submit Assignment
+                        </div>
+                        <div class="card-body p-4">
+                            <form method="POST" enctype="multipart/form-data">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                <input type="hidden" name="aksi" value="upload">
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bolder text-secondary">Files</label>
+                                    <input type="file" name="file_tugas" class="form-control border-primary bg-light" required multiple>
+                                    <div class="form-text mt-2" style="font-size: 0.75rem;">*Hold down the CTRL key when selecting multiple files.</div>
+                                </div>
+                                <div class="mb-4">
+                                    <label class="form-label small fw-bolder text-secondary">WORKER'S NOTES</label>
+                                    <textarea name="catatan" class="form-control bg-light" rows="3" placeholder="Contoh: Revisi bab 3 udah beres bang..."></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-primary w-100 fw-bold shadow-sm rounded-pill py-2">
+                                    Upload File Now
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                {% elif tugas['status'] == 'Ready for Review' %}
+                    <div class="card shadow-sm border-0 rounded-4 bg-light border-start border-info border-4 text-center p-4 mb-4">
+                        <span class="fs-1 d-block mb-3">⏳</span>
+                        <h5 class="fw-bolder text-info mb-2">Pending Review</h5>
+                        <p class="small text-muted mb-0">The file has been successfully submitted! Please be patient while the reviewer checks your assignment.</p>
+                    </div>
+                {% endif %}
+            {% endif %}
+
+            {% if session['role'] == 'reviewer' and tugas['reviewer_id'] == session['id'] %}
+                {% if tugas['status'] == 'Ready for Review' %}
+                    <div class="card shadow-sm border-0 rounded-4 border-top border-warning border-4 mb-4">
+                        <div class="card-header bg-white text-dark fw-bolder border-bottom-0 pt-4 pb-0">
+                            <i class="bi bi-clipboard-check-fill text-warning me-2 fs-5"></i> Assessment Form
+                        </div>
+                        <div class="card-body p-4">
+                            <form method="POST">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                <input type="hidden" name="aksi" value="review">
+                                <input type="hidden" name="submission_id" value="{{ submissions[0]['id'] }}">
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bolder text-secondary">DECISION</label>
+                                    <select name="hasil" class="form-select border-warning bg-light fw-bold" required>
+                                        <option value="Rejected">⚠️ Needs Revision (Return)</option>
+                                        <option value="Approved">✅ Approved (Done)</option>
+                                    </select>
+                                </div>
+                                <div class="mb-4">
+                                    <label class="form-label small fw-bolder text-secondary">NOTES / REVISIONS</label>
+                                    <textarea name="komentar" class="form-control bg-light" rows="5" required placeholder="Tulis detail catatan revisi di sini..."></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-warning w-100 fw-bold shadow-sm text-dark rounded-pill py-2">
+                                    Submit Review
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                {% elif tugas['status'] == 'Revision Needed' %}
+                    <div class="card shadow-sm border-0 rounded-4 bg-light border-start border-secondary border-4 text-center p-4 mb-4">
+                        <span class="fs-1 d-block mb-3 opacity-50">🔒</span>
+                        <h5 class="fw-bolder text-muted mb-2">Pending Revision</h5>
+                        <p class="small text-muted mb-0">The review has been submitted. The panel is locked until a member submits a new file.</p>
+                    </div>
+                {% else %}
+                    <div class="card shadow-sm border-0 rounded-4 bg-light text-center p-5 mb-4">
+                        <span class="fs-1 d-block mb-3 opacity-25">⏳</span>
+                        <h6 class="fw-bolder text-muted">No Deposits Yet</h6>
+                        <p class="small text-muted mb-0">Wait for the member to upload their work file.</p>
+                    </div>
+                {% endif %}
+            {% endif %}
+
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

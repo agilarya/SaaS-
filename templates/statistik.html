@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+{% block title %}Statistik & Analisa - Skripsikuu{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+    <div class="d-flex justify-content-between align-items-center mb-4 mt-2 flex-wrap gap-3">
+        <div>
+            <h4 class="fw-bolder mb-1 text-dark"><i class="bi bi-bar-chart-line-fill text-spectra me-2"></i>Statistics & Analysis</h4>
+            <p class="text-muted small mb-0">Summary of system performance and project health assessment.</p>
+        </div>
+        <button class="btn btn-primary shadow-sm px-4 py-2 fw-bold d-flex align-items-center rounded-pill" onclick="window.print()">
+            <i class="bi bi-printer-fill me-2"></i> Print Report
+        </button>
+    </div>
+
+    <div class="card spectra-chart-card p-4 mb-4">
+        <h6 class="text-dark fw-bolder mb-4 text-uppercase letter-spacing-1 d-flex align-items-center">
+            <div class="bg-spectra-soft p-2 rounded me-2"><i class="bi bi-graph-up text-spectra fs-5"></i></div>
+            Completed Assignment Trends (Last 6 Months)
+        </h6>
+        <div class="chart-wrapper">
+            <canvas id="monthlyActivityChart"></canvas>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-6 mb-4">
+            <div class="card spectra-chart-card p-4 h-100">
+                <h6 class="text-dark fw-bolder mb-4 text-uppercase letter-spacing-1 d-flex align-items-center">
+                    <div class="bg-primary bg-opacity-10 p-2 rounded me-2"><i class="bi bi-pie-chart-fill text-primary fs-5"></i></div>
+                    Task Status Distribution
+                </h6>
+                <div class="chart-wrapper-sm d-flex justify-content-center align-items-center">
+                    <canvas id="statusChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6 mb-4">
+            <div class="card spectra-chart-card p-4 h-100">
+                <h6 class="text-dark fw-bolder mb-4 text-uppercase letter-spacing-1 d-flex align-items-center">
+                    <div class="bg-danger bg-opacity-10 p-2 rounded me-2"><i class="bi bi-calendar2-x-fill text-danger fs-5"></i></div>
+                    Health Deadline (Active Assignment)
+                </h6>
+                <div class="chart-wrapper-sm d-flex justify-content-center align-items-center">
+                    <canvas id="deadlineChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // 🔥 SIKAT FONT BAWAAN CHART.JS JADI PLUS JAKARTA SANS 🔥
+    Chart.defaults.font.family = "'Plus Jakarta Sans', sans-serif";
+    Chart.defaults.color = '#64748b';
+    Chart.defaults.font.weight = '500';
+
+    // 1. Grafik Produktivitas Bulanan (Bar Chart)
+    const ctxMonthly = document.getElementById('monthlyActivityChart').getContext('2d');
+    new Chart(ctxMonthly, {
+        type: 'bar',
+        data: {
+            labels: {{ labels_bulan|tojson }},
+            datasets: [{
+                label: 'Tugas Done',
+                data: {{ data_bulan|tojson }},
+                backgroundColor: '#ff5a1f',
+                borderRadius: 8,
+                barThickness: 35,
+                hoverBackgroundColor: '#d94411'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: { backgroundColor: '#0f172a', padding: 12, cornerRadius: 8 }
+            },
+            scales: {
+                y: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { borderDash: [4, 4], color: '#e2e8f0' }, border: { display: false } },
+                x: { grid: { display: false }, border: { display: false } }
+            }
+        }
+    });
+
+    // ==========================================
+    // LOGIKA ANTI-BLANK UNTUK GRAFIK DOUGHNUT
+    // ==========================================
+
+    // Data asli dari Python
+    let dataStatus = {{ data_status|tojson }};
+    let labelsStatus = {{ labels_status|tojson }};
+    let bgStatus = ['#cbd5e1', '#ff5a1f', '#38bdf8', '#f59e0b', '#10b981'];
+
+    let dataDeadline = {{ data_deadline|tojson }};
+    let labelsDeadline = {{ labels_deadline|tojson }};
+    let bgDeadline = ['#ef4444', '#f59e0b', '#10b981', '#cbd5e1'];
+
+    // Cek kalau tugasnya 0 semua, ganti jadi abu-abu kosong
+    if(dataStatus.every(item => item === 0)) {
+        dataStatus = [1];
+        labelsStatus = ['Belum Ada Tugas'];
+        bgStatus = ['#f1f5f9'];
+    }
+
+    if(dataDeadline.every(item => item === 0)) {
+        dataDeadline = [1];
+        labelsDeadline = ['Tidak Ada Tugas Aktif'];
+        bgDeadline = ['#f1f5f9'];
+    }
+
+    // 2. Grafik Distribusi Status (Doughnut Chart)
+    const ctxStatus = document.getElementById('statusChart').getContext('2d');
+    new Chart(ctxStatus, {
+        type: 'doughnut',
+        data: {
+            labels: labelsStatus,
+            datasets: [{
+                data: dataStatus,
+                backgroundColor: bgStatus,
+                borderWidth: 3,
+                borderColor: '#ffffff',
+                hoverOffset: 6
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { position: 'right', labels: { usePointStyle: true, padding: 20, font: {size: 13} } } },
+            cutout: '75%'
+        }
+    });
+
+    // 3. Grafik Kesehatan Deadline (Pie Chart)
+    const ctxDeadline = document.getElementById('deadlineChart').getContext('2d');
+    new Chart(ctxDeadline, {
+        type: 'doughnut',
+        data: {
+            labels: labelsDeadline,
+            datasets: [{
+                data: dataDeadline,
+                backgroundColor: bgDeadline,
+                borderWidth: 3,
+                borderColor: '#ffffff',
+                hoverOffset: 6
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { position: 'right', labels: { usePointStyle: true, padding: 20, font: {size: 13} } } },
+            cutout: '60%'
+        }
+    });
+</script>
+{% endblock %}
